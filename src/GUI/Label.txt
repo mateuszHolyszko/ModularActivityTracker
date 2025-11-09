@@ -1,0 +1,31 @@
+// Create labels
+auto titleLabel = std::make_unique<Label>(
+    &renderContext, 
+    50, 20, 500, 40, 
+    "Welcome to Modular Activity Tracker", 
+    true,  // show border
+    24     // larger font size
+);
+
+auto infoLabel = std::make_unique<Label>(
+    &renderContext,
+    50, 70, 300, 30,
+    "Press any key to continue...",
+    false, // no border
+    16     // normal font size
+);
+
+auto statusLabel = std::make_unique<Label>(
+    &renderContext,
+    50, 400, 200, 25,
+    "Status: Ready",
+    true   // show border
+);
+
+// Add to your GUI elements vector
+guiElements.push_back(std::move(titleLabel));
+guiElements.push_back(std::move(infoLabel));
+guiElements.push_back(std::move(statusLabel));
+
+// You can also update label text dynamically
+statusLabel->setText("Status: Processing...");

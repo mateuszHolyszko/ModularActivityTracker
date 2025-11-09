@@ -1,0 +1,5 @@
+neigbhours are not hard coded, but based on ray cast, pool all selectable elements in menu and check for the closest
+one in 90angle to determine where to go
+
+make a loading screen a usual element not a menu so that it can be 
+rendered in usual way
