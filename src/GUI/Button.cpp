@@ -1,51 +1,47 @@
 #include <iostream>
 #include <algorithm>
-#include "Label.hpp"
+#include "Button.hpp"
 #include "../TextRenderer.hpp"
 #include "../SimplesRenderer.hpp"
 #include "../RenderContext.hpp"
 
-Label::Label(RenderContext* context,
+Button::Button(RenderContext* context,
              int x, int y, int width, int height, 
              const std::string& text, 
              bool showBorder,
              int fontSize,
              int layer, 
              BaseElement* parent)
-    : BaseElement(context, x, y, width, height, false, layer, parent),
+    : BaseElement(context, x, y, width, height, true, layer, parent),  // selectable = true by default
       text(text), showBorder(showBorder), fontSize(fontSize), 
       hovered(false), wrapText(true) {
     updateDisplayedText();
 }
 
-void Label::render() {
+void Button::render() {
     if (!visible) return;
 
     // Update displayed text based on current state (including selection)
     updateDisplayedText();
 
-    // Only draw background if the label is selectable, selected, or hovered
-    // Otherwise, it will be transparent (same as parent background)
-    if (selectable || is_selected || hovered) {
-        SDL_Color bgColor;
-        if (!enabled) {
-            bgColor = style.getBgColorNotSelectable();
-        } else if (is_selected) {
-            bgColor = style.getActiveBgColor();
-        } else if (hovered && selectable) {
-            bgColor = style.getHighlightColor();
-        } else {
-            bgColor = style.getLgBgColor();
-        }
-
-        // Draw background only for interactive states
-        SDL_SetRenderDrawColor(renderContext->sdlRenderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-        SDL_Rect bgRect = {x, y, width, height};
-        SDL_RenderFillRect(renderContext->sdlRenderer, &bgRect);
+    // Determine background color based on state
+    SDL_Color bgColor;
+    if (!enabled) {
+        bgColor = style.getBgColorNotSelectable();
+    } else if (is_selected) {
+        bgColor = style.getActiveBgColor();
+    } else if (hovered) {
+        bgColor = style.getHighlightColor();
+    } else {
+        bgColor = style.getLgBgColor();
     }
-    // If not selectable and not hovered/selected, no background is drawn (transparent)
 
-    // Draw border only if explicitly enabled
+    // Draw background
+    SDL_SetRenderDrawColor(renderContext->sdlRenderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+    SDL_Rect bgRect = {x, y, width, height};
+    SDL_RenderFillRect(renderContext->sdlRenderer, &bgRect);
+
+    // Draw border if enabled
     if (showBorder) {
         SDL_Color borderColor = style.getBorderColor();
         renderContext->simpleRenderer->DrawThickRect(x, y, width, height, 1, borderColor);
@@ -54,7 +50,7 @@ void Label::render() {
     // Draw text
     SDL_Color textColor = style.getTextColor();
     
-    // Calculate text position (centered within the label)
+    // Calculate text position (centered within the button)
     int textX = x + 5;  // Small padding from left edge
     int textY = y + (height - fontSize) / 2;  // Vertically centered
     
@@ -68,11 +64,11 @@ void Label::render() {
             textColor
         );
     } catch (const std::exception& e) {
-        std::cerr << "Label text render error: " << e.what() << std::endl;
+        std::cerr << "Button text render error: " << e.what() << std::endl;
     }
 }
 
-void Label::handleEvent(const SDL_Event& event) {
+void Button::handleEvent(const SDL_Event& event) {
     if (!enabled || !visible) return;
 
     switch (event.type) {
@@ -82,7 +78,7 @@ void Label::handleEvent(const SDL_Event& event) {
             hovered = containsPoint(event.motion.x, event.motion.y);
             
             // Trigger hover callback if state changed
-            if (hovered && !wasHovered && onHover && selectable) {
+            if (hovered && !wasHovered && onHover) {
                 onHover();
             }
             break;
@@ -90,38 +86,42 @@ void Label::handleEvent(const SDL_Event& event) {
             
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT && containsPoint(event.button.x, event.button.y)) {
-                if (onPress) onPress();
+                onPress();
             }
             break;
 
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_RETURN && is_selected) {
-                if (onPress) onPress();
+                onPress();
             }
             break;
     }
 }
 
-void Label::setText(const std::string& newText) {
+void Button::onPress() {
+    // Default implementation: print text field and center position
+    int centerX = x + width / 2;
+    int centerY = y + height / 2;
+    std::cerr << "Button pressed - Text: '" << text 
+              << "', Center Position: (" << centerX << ", " << centerY << ")" << std::endl;
+}
+
+void Button::setText(const std::string& newText) {
     text = newText;
     updateDisplayedText();
 }
 
-void Label::setFontSize(int size) {
+void Button::setFontSize(int size) {
     fontSize = size;
     updateDisplayedText();
 }
 
-void Label::setWrapText(bool wrap) {
+void Button::setWrapText(bool wrap) {
     wrapText = wrap;
     updateDisplayedText();
 }
 
-void Label::setSelectable(bool selectable) {
-    this->selectable = selectable;
-}
-
-void Label::updateDisplayedText() {
+void Button::updateDisplayedText() {
     // If element is focused or wrapping is disabled, show full text
     if (is_selected || !wrapText) {
         displayedText = text;
@@ -136,7 +136,7 @@ void Label::updateDisplayedText() {
     }
 }
 
-bool Label::needsWrapping() const {
+bool Button::needsWrapping() const {
     if (text.empty()) return false;
     
     // Rough estimation: average character width is about 0.7 * font size
@@ -147,7 +147,7 @@ bool Label::needsWrapping() const {
     return estimatedTextWidth > availableWidth;
 }
 
-std::string Label::wrapTextToFit() const {
+std::string Button::wrapTextToFit() const {
     if (text.empty()) return text;
     
     // Calculate how many characters can fit

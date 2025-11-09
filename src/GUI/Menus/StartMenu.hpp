@@ -3,15 +3,17 @@
 
 #include "../Menu.hpp"
 #include "../Label.hpp"
+#include "../Button.hpp"
 
 class StartMenu : public Menu {
 public:
     StartMenu(RenderContext* context);
     void init() override;
-    
+
 private:
     void onStartGame();
-    void onOptions();
+    void onViewHistory();
+    void onSettings();
     void onExit();
 };
 

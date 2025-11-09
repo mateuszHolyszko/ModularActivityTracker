@@ -9,6 +9,7 @@
                 "src/main.cpp",
                 "src/GUI/BaseElement.cpp",
                 "src/GUI/Label.cpp",
+                "src/GUI/Button.cpp",
                 "src/GUI/Menu.cpp",
                 "src/GUI/Menus/StartMenu.cpp",
                 "-o",

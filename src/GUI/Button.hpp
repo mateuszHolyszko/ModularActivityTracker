@@ -1,10 +1,10 @@
-#ifndef LABEL_HPP
-#define LABEL_HPP
+#ifndef BUTTON_HPP
+#define BUTTON_HPP
 
 #include "BaseElement.hpp"
 #include "../Style.hpp"
 
-class Label : public BaseElement {
+class Button : public BaseElement {
 private:
     std::string text;
     std::string displayedText;  // The actual text to display (wrapped if needed)
@@ -14,10 +14,10 @@ private:
     bool wrapText;  // Whether to wrap text that's too long
 
 public:
-    Label(RenderContext* context,
+    Button(RenderContext* context,
           int x, int y, int width, int height, 
           const std::string& text, 
-          bool showBorder = false,  // Changed default to false
+          bool showBorder = false,
           int fontSize = 16,
           int layer = 0, 
           BaseElement* parent = nullptr);
@@ -42,11 +42,12 @@ public:
     void setWrapText(bool wrap);
     bool isWrapText() const { return wrapText; }
     
-    // Selectable management
-    void setSelectable(bool selectable);
-    
     // Hover state
     bool isHovered() const { return hovered; }
+
+protected:
+    // Default onPress implementation that prints text field and center position
+    virtual void onPress();
 
 private:
     void updateDisplayedText();  // Update the displayed text based on wrapping rules
