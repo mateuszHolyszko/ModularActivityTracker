@@ -1,1 +1,0 @@
-if elements consume event they should return 1 (as in navigation has to be prevented)
