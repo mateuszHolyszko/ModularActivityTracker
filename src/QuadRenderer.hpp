@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/glew.h>
+#include <GL/glew.h>  // Desktop OpenGL
 
 class QuadRenderer {
 public:

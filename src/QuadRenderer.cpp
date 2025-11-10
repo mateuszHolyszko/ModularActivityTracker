@@ -36,12 +36,17 @@ bool QuadRenderer::createShader() {
             char log[512];
             glGetShaderInfoLog(shader, 512, nullptr, log);
             std::cerr << "[Shader Compile Error] " << log << std::endl;
+            return 0;
         }
         return shader;
     };
 
     GLuint vert = compileShader(GL_VERTEX_SHADER, quadVertSrc);
     GLuint frag = compileShader(GL_FRAGMENT_SHADER, quadFragSrc);
+    
+    if (!vert || !frag) {
+        return false;
+    }
 
     program = glCreateProgram();
     glAttachShader(program, vert);
@@ -54,6 +59,8 @@ bool QuadRenderer::createShader() {
         char log[512];
         glGetProgramInfoLog(program, 512, nullptr, log);
         std::cerr << "[Shader Link Error] " << log << std::endl;
+        glDeleteShader(vert);
+        glDeleteShader(frag);
         return false;
     }
 

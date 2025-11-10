@@ -4,7 +4,7 @@
 #include <string>
 
 // Forward declaration
-class TextRenderer;
+class SimpleRenderer;
 
 // ==============================
 // Command structures
@@ -18,15 +18,27 @@ struct TextCommand {
     float fontSize;
 };
 
+struct GraphicCommand {
+    enum Type { LINE, BOX };
+    Type type;
+    float x1, y1, x2, y2; // For line: start and end points; For box: top-left and bottom-right
+    glm::vec4 color;
+    int layer;
+    float lineWidth; // For line thickness or box border
+    bool filled; // For box: filled or outline only
+};
+
 // ==============================
 // RenderContext
 // ==============================
 struct RenderContext {
     std::vector<TextCommand> textQueue;  // commands accumulated by GUI elements
+    std::vector<GraphicCommand> graphicQueue;  // graphic commands
 
-    TextRenderer* textRenderer = nullptr;  // pointer, not owned
+    SimpleRenderer* renderer = nullptr;  // pointer, not owned
 
     void clearQueues() {
         textQueue.clear();
+        graphicQueue.clear();
     }
 };

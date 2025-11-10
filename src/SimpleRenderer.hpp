@@ -1,0 +1,35 @@
+#pragma once
+#include <vector>
+#include <string>
+#include <glm/glm.hpp>
+#include <GL/glew.h>
+#include "RenderContext.hpp"  // Include the single source of truth
+
+// ==============================
+// SimpleRenderer (formerly TextRenderer)
+// ==============================
+class SimpleRenderer {
+public:
+    SimpleRenderer();
+    ~SimpleRenderer();
+
+    bool init(RenderContext* ctx, int texWidth, int texHeight);
+    void renderToTexture(std::vector<TextCommand>& textCommands, std::vector<GraphicCommand>& graphicCommands);
+    GLuint getTexture() const { return colorTex; }
+    void shutdown();
+
+private:
+    RenderContext* context = nullptr;
+    struct NVGcontext* vg = nullptr;
+
+    GLuint fbo = 0;
+    GLuint colorTex = 0;
+    GLuint rbo = 0;
+    int texWidth = 0;
+    int texHeight = 0;
+
+    int defaultFont = -1;
+
+    bool createFBO(int width, int height);
+    void destroyFBO();
+};
