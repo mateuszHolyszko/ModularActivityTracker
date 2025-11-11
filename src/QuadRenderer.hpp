@@ -1,5 +1,8 @@
 #pragma once
 #include <GL/glew.h>  // Desktop OpenGL
+//#include <GLES2/gl2.h>  // Mobile OpenGL ES 2.0
+#include <SDL2/SDL.h>
+
 
 class QuadRenderer {
 public:

@@ -1,11 +1,14 @@
 #include "SimpleRenderer.hpp"
+#include "Style.hpp"
 #include <algorithm>
 #include <iostream>
 
 // Use Desktop OpenGL with NanoVG
 #include <SDL2/SDL_opengl.h>
 #include "nanovg.h"
-#define NANOVG_GL3_IMPLEMENTATION  // Change from GLES2 to GL3
+//#define NANOVG_GLES2_IMPLEMENTATION  // for mobile
+#define NANOVG_GL2_IMPLEMENTATION  // for desktop
+//#define NANOVG_GLES2_NO_HIGH_PRECISION
 #include "nanovg_gl.h"
 
 SimpleRenderer::SimpleRenderer() {}
@@ -21,13 +24,13 @@ bool SimpleRenderer::init(RenderContext* ctx, int width, int height) {
         return false;
     }
 
-    vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);  // Change from GLES2 to GL3
+    vg = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);  // Change from GLES2 to GL3
     if (!vg) {
         std::cerr << "[SimpleRenderer] Failed to create NanoVG context.\n";
         return false;
     }
 
-    defaultFont = nvgCreateFont(vg, "default", "fonts/RasterForgeRegular-JpBgm.ttf");
+    defaultFont = nvgCreateFont(vg, "default", "fonts/VT323-Regular.ttf");
     if (defaultFont == -1) {
         std::cerr << "[SimpleRenderer] Failed to load default font.\n";
         return false;
@@ -108,7 +111,7 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, texWidth, texHeight);
-    glClearColor(0, 0, 0, 0); // transparent background
+    glClearColor(style.bg_color.r/255.0f, style.bg_color.g/255.0f, style.bg_color.b/255.0f, 0); // transparent background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     nvgBeginFrame(vg, texWidth, texHeight, 1.0f);
@@ -166,7 +169,7 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
 
 void SimpleRenderer::shutdown() {
     if (vg) {
-        nvgDeleteGL3(vg);  // Change from GLES2 to GL3
+        nvgDeleteGL2(vg);  // Change from GLES2 to GL3
         vg = nullptr;
     }
     destroyFBO();

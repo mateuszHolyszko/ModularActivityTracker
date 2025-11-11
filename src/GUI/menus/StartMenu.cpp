@@ -12,7 +12,7 @@ void StartMenu::init() {
         150, 70, 300, 60,
         "Activity Tracker",
         false,  // Show border
-        28,     // Large font
+        32,     // Large font
         1       // Layer
     );
     titleLabel->setId("title_label");
@@ -25,7 +25,7 @@ void StartMenu::init() {
         200, 130, 200, 30,
         "Track Your Progress",
         false,  // No border
-        16,     // Normal font
+        24,     // Normal font
         1       // Layer
     );
     subtitleLabel->setId("subtitle_label");
@@ -38,7 +38,7 @@ void StartMenu::init() {
         150, 180, 300, 50,
         "Start New Session",
         true,  // Show border
-        18,    // Medium font
+        24,    // Medium font
         2      // Layer
     );
     startButton->setId("start_button");
@@ -52,7 +52,7 @@ void StartMenu::init() {
         150, 250, 300, 50,
         "View History testtesttesttesttesttesttesttesttest",
         true,  // Show border
-        18,    // Medium font
+        24,    // Medium font
         2      // Layer
     );
     historyButton->setId("history_button");
@@ -66,7 +66,7 @@ void StartMenu::init() {
         150, 320, 300, 50,
         "Settings",
         true,  // Show border
-        18,    // Medium font
+        24,    // Medium font
         2      // Layer
     );
     settingsButton->setId("settings_button");
@@ -80,7 +80,7 @@ void StartMenu::init() {
         150, 390, 300, 50,
         "Exit",
         true,  // Show border
-        18,    // Medium font
+        24,    // Medium font
         2      // Layer
     );
     exitButton->setId("exit_button");

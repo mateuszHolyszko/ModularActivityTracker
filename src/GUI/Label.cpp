@@ -158,7 +158,7 @@ bool Label::needsWrapping() const {
     
     // Rough estimation: average character width is about 0.65 * font size
     // This is a simple approximation - for exact measurement you'd need text rendering metrics
-    double estimatedTextWidth = text.length() * fontSize * 0.65;
+    double estimatedTextWidth = text.length() * fontSize * 0.4;
     double availableWidth = width - 10;  // Account for padding
     
     return estimatedTextWidth > availableWidth;
@@ -169,7 +169,7 @@ std::string Label::wrapTextToFit() const {
     
     // Calculate how many characters can fit
     double availableWidth = width - 10;  // Account for padding
-    int maxChars = static_cast<int>(availableWidth / (fontSize * 0.6));
+    int maxChars = static_cast<int>(availableWidth / (fontSize * 0.4));
     
     // Ensure we have at least 3 characters for "..." + some text
     if (maxChars <= 3) {

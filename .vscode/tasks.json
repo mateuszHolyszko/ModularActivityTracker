@@ -14,6 +14,7 @@
                 "src/GUI/menus/StartMenu.cpp",
                 "src/SimpleRenderer.cpp",
                 "src/QuadRenderer.cpp",
+                "src/PostProcess.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",
                 "main.exe",
@@ -28,8 +29,9 @@
                 "-lmingw32",
                 "-lSDL2main",
                 "-lSDL2",
-                "-lglew32",
+                "-lglew32", // For desktop OpenGL
                 "-lopengl32",
+                //"-lGLESv2", // Use GLESv2 instead of OpenGL for mobile
                 "-lSDL2_ttf"
             ],
             "group": {

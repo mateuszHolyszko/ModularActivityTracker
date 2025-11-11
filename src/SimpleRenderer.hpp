@@ -2,7 +2,10 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include <GL/glew.h>
+#include <GL/glew.h>  // Desktop OpenGL
+//#include <GLES2/gl2.h>  // Mobile OpenGL ES 2.0
+#include <SDL2/SDL.h>
+
 #include "RenderContext.hpp"  // Include the single source of truth
 
 // ==============================
