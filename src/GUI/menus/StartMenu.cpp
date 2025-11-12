@@ -39,7 +39,9 @@ void StartMenu::init() {
         "Start New Session",
         true,  // Show border
         24,    // Medium font
-        2      // Layer
+        2,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     startButton->setId("start_button");
     // Connect button callback
@@ -48,12 +50,14 @@ void StartMenu::init() {
 
     // View History button (layer 2 - interactive elements)
     auto historyButton = std::make_unique<Button>(
-        renderContext,  // Use renderContext instead of context
+        renderContext,
         150, 250, 300, 50,
         "View History testtesttesttesttesttesttesttesttest",
         true,  // Show border
         24,    // Medium font
-        2      // Layer
+        2,     // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     historyButton->setId("history_button");
     // Connect button callback

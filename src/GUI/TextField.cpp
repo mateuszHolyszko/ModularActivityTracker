@@ -15,12 +15,50 @@ std::vector<TextCommand> TextField::render(int layer) {
         displayText = truncateText(text_, width_);
     }
 
+    // If no context, return empty or show error text
+    if (!context_ || !context_->renderer) {
+        // Option 1: Return empty (no rendering)
+        // return commands;
+        
+        // Option 2: Show error text
+        TextCommand cmd;
+        cmd.layer = layer;
+        cmd.fontSize = font_size_;
+        cmd.font = font_;
+        cmd.color = color_;
+        cmd.x = x_;
+        cmd.y = y_;
+        cmd.width = width_;
+        cmd.height = font_size_;
+        cmd.text = "null ctx";
+        commands.push_back(cmd);
+        return commands;
+    }
+
+    // Calculate horizontal position based on alignment
+    float textX = x_;
+    float textWidth = context_->measureTextWidth(displayText, font_, font_size_);
+    
+    // Apply horizontal alignment
+    switch (hAlign_) {
+        case CENTER:
+            textX = x_ + (width_ - textWidth) / 2.0f;
+            break;
+        case RIGHT:
+            textX = x_ + width_ - textWidth;
+            break;
+        case LEFT:
+        default:
+            // textX remains as x_ (left-aligned)
+            break;
+    }
+
     TextCommand cmd;
     cmd.layer = layer;
     cmd.fontSize = font_size_;
     cmd.font = font_;
     cmd.color = color_;
-    cmd.x = x_;
+    cmd.x = textX;  // Use calculated X position
     cmd.y = y_;
     cmd.width = width_;
     cmd.height = font_size_;
@@ -34,43 +72,40 @@ std::vector<TextCommand> TextField::render(int layer) {
 std::string TextField::truncateText(const std::string& text, float maxWidth) {
     if (text.empty()) return text;
 
-    // If we have a valid context and renderer, use accurate measurement
-    if (context_ && context_->renderer) {
-        float textWidth = context_->measureTextWidth(text, font_, font_size_);
-        
-        // If text fits within the width, return it as is
-        if (textWidth <= maxWidth) {
-            return text;
-        }
-
-        // Text is too long, need to truncate with binary search
-        int low = 0;
-        int high = text.length();
-        int bestFit = 0;
-        
-        while (low <= high) {
-            int mid = (low + high) / 2;
-            std::string testText = text.substr(0, mid) + "...";
-            float testWidth = context_->measureTextWidth(testText, font_, font_size_);
-            
-            if (testWidth <= maxWidth) {
-                bestFit = mid;
-                low = mid + 1;
-            } else {
-                high = mid - 1;
-            }
-        }
-        
-        // Ensure we have at least 1 character before "..."
-        if (bestFit <= 0) {
-            return "...";
-        }
-        
-        return text.substr(0, bestFit) + "...";
-    } 
-    else {
-        // Fall back to rough estimation if no context/renderer available
-        
-        return "null renderer context";
+    // If no context, return error text
+    if (!context_ || !context_->renderer) {
+        return "null ctx";
     }
+
+    float textWidth = context_->measureTextWidth(text, font_, font_size_);
+    
+    // If text fits within the width, return it as is
+    if (textWidth <= maxWidth) {
+        return text;
+    }
+
+    // Text is too long, need to truncate with binary search
+    int low = 0;
+    int high = text.length();
+    int bestFit = 0;
+    
+    while (low <= high) {
+        int mid = (low + high) / 2;
+        std::string testText = text.substr(0, mid) + "...";
+        float testWidth = context_->measureTextWidth(testText, font_, font_size_);
+        
+        if (testWidth <= maxWidth) {
+            bestFit = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    
+    // Ensure we have at least 1 character before "..."
+    if (bestFit <= 0) {
+        return "...";
+    }
+    
+    return text.substr(0, bestFit) + "...";
 }

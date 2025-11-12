@@ -33,7 +33,7 @@ struct Style {
         bg_color_notSelectable(50, 50, 50),
         lg_bg_color(55, 55, 55),
         text_color(255, 255, 255),
-        border_color(100, 100, 100),
+        border_color(255, 255, 255),
         highlight_color(80, 80, 80),
         active_bg_color(30, 80, 180),
         font(nullptr)

@@ -8,7 +8,8 @@ Button::Button(RenderContext* context,
              bool showBorder,
              int fontSize,
              int layer, 
-             BaseElement* parent)
+             BaseElement* parent,
+             HorizontalAlignment textAlign)  // Add alignment parameter
     : BaseElement(context, x, y, width, height, true, layer, parent),
       text(text), showBorder(showBorder), fontSize(fontSize), 
       hovered(false), wrapText(true) {
@@ -17,9 +18,9 @@ Button::Button(RenderContext* context,
     int textX = x + 5;
     int textY = y + (height - fontSize) / 2;
     
-    // Create TextField - now just pass the renderContext
+    // Create TextField with alignment
     textField = new TextField(
-        renderContext,  // Simplified - just pass the context
+        renderContext,
         static_cast<float>(textX), 
         static_cast<float>(textY + fontSize),
         static_cast<float>(width - 10), 
@@ -28,7 +29,7 @@ Button::Button(RenderContext* context,
         "",
         static_cast<float>(fontSize),
         colorToVec4(style.getTextColor()),
-        LEFT,
+        textAlign,  // Use the alignment parameter
         false
     );
 }
@@ -80,7 +81,7 @@ void Button::render() {
         borderCmd.x2 = static_cast<float>(x + width);
         borderCmd.y2 = static_cast<float>(y + height);
         borderCmd.color = colorToVec4(borderColor);
-        borderCmd.layer = layer + 1;
+        borderCmd.layer = layer;
         borderCmd.lineWidth = 1.0f;
         borderCmd.filled = false;
         

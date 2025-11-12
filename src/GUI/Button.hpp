@@ -24,7 +24,8 @@ public:
            bool showBorder = false,
            int fontSize = 16,
            int layer = 0, 
-           BaseElement* parent = nullptr);
+           BaseElement* parent = nullptr,
+           HorizontalAlignment textAlign = LEFT);
     
     ~Button();  // Add destructor to clean up TextField
     
