@@ -2,7 +2,6 @@
 #define STARTMENU_HPP
 
 #include "../Menu.hpp"
-#include "../Label.hpp"
 #include "../Button.hpp"
 
 class StartMenu : public Menu {

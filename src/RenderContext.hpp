@@ -41,4 +41,7 @@ struct RenderContext {
         textQueue.clear();
         graphicQueue.clear();
     }
+    
+    // Text measurement method - delegates to SimpleRenderer
+    float measureTextWidth(const std::string& text, const std::string& font, float fontSize);
 };

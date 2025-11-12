@@ -8,11 +8,12 @@
             "args": [
                 "src/main.cpp",
                 "src/GUI/BaseElement.cpp",
-                "src/GUI/Label.cpp",
                 "src/GUI/Button.cpp",
+                "src/GUI/TextField.cpp",
                 "src/GUI/Menu.cpp",
                 "src/GUI/menus/StartMenu.cpp",
                 "src/SimpleRenderer.cpp",
+                "src/RenderContext.cpp",
                 "src/QuadRenderer.cpp",
                 "src/PostProcess.cpp",
                 "external/nanovg/src/nanovg.c",

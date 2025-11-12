@@ -19,6 +19,11 @@ bool SimpleRenderer::init(RenderContext* ctx, int width, int height) {
     texWidth = width;
     texHeight = height;
 
+    // Set the renderer in the context so UI elements can access it
+    if (ctx) {
+        ctx->renderer = this;  
+    }
+
     if (!createFBO(width, height)) {
         std::cerr << "[SimpleRenderer] Failed to create FBO.\n";
         return false;
@@ -165,6 +170,35 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
 
     nvgEndFrame(vg);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+float SimpleRenderer::measureTextWidth(const std::string& text, const std::string& font, float fontSize) {
+    if (!vg) {
+        std::cerr << "[SimpleRenderer] measureTextWidth: NanoVG context not initialized!\n";
+        return 0.0f;
+    }
+    
+    if (text.empty()) {
+        std::cout << "[SimpleRenderer] measureTextWidth: Empty text, returning 0\n";
+        return 0.0f;
+    }
+    
+    // Set up the font and size
+    nvgFontSize(vg, fontSize);
+    nvgFontFace(vg, font.empty() ? "default" : font.c_str());
+    
+    // Measure the text bounds
+    float bounds[4];
+    float width = nvgTextBounds(vg, 0, 0, text.c_str(), nullptr, bounds);
+    
+    // Debug output
+    // std::cout << "[SimpleRenderer] measureTextWidth: Text='" << text 
+    //           << "', Font='" << (font.empty() ? "default" : font) 
+    //           << "', Size=" << fontSize 
+    //           << "', Width=" << width 
+    //           << "', Bounds=[" << bounds[0] << ", " << bounds[1] << ", " << bounds[2] << ", " << bounds[3] << "]\n";
+    
+    return width;
 }
 
 void SimpleRenderer::shutdown() {

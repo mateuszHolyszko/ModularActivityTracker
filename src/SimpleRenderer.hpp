@@ -20,6 +20,9 @@ public:
     void renderToTexture(std::vector<TextCommand>& textCommands, std::vector<GraphicCommand>& graphicCommands);
     GLuint getTexture() const { return colorTex; }
     void shutdown();
+    
+    // Text measurement method - now private, only called by RenderContext
+    float measureTextWidth(const std::string& text, const std::string& font, float fontSize);
 
 private:
     RenderContext* context = nullptr;

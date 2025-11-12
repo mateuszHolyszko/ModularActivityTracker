@@ -4,12 +4,13 @@
 #include "BaseElement.hpp"
 #include "../Style.hpp"
 #include "../RenderContext.hpp"
+#include "TextField.hpp"
 #include <functional>
 
 class Button : public BaseElement {
 private:
     std::string text;
-    std::string displayedText;
+    TextField* textField;  // Use pointer since we need dynamic initialization
     bool showBorder;
     int fontSize;
     bool hovered;
@@ -25,13 +26,14 @@ public:
            int layer = 0, 
            BaseElement* parent = nullptr);
     
+    ~Button();  // Add destructor to clean up TextField
+    
     void render() override;
     void handleEvent(const SDL_Event& event) override;
     
     // Text management
     void setText(const std::string& newText);
     const std::string& getText() const { return text; }
-    const std::string& getDisplayedText() const { return displayedText; }
     
     // Border management
     void setShowBorder(bool show) { showBorder = show; }
@@ -53,9 +55,7 @@ public:
 
 private:
     void onPress();
-    void updateDisplayedText();
-    bool needsWrapping() const;
-    std::string wrapTextToFit() const;
+    void updateTextField();
     
     // Convert SDL_Color to glm::vec4
     glm::vec4 colorToVec4(const SDL_Color& color) const {

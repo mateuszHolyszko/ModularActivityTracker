@@ -9,17 +9,39 @@ Button::Button(RenderContext* context,
              int fontSize,
              int layer, 
              BaseElement* parent)
-    : BaseElement(context, x, y, width, height, true, layer, parent),  // selectable = true by default
+    : BaseElement(context, x, y, width, height, true, layer, parent),
       text(text), showBorder(showBorder), fontSize(fontSize), 
       hovered(false), wrapText(true) {
-    updateDisplayedText();
+    
+    // Calculate text position
+    int textX = x + 5;
+    int textY = y + (height - fontSize) / 2;
+    
+    // Create TextField - now just pass the renderContext
+    textField = new TextField(
+        renderContext,  // Simplified - just pass the context
+        static_cast<float>(textX), 
+        static_cast<float>(textY + fontSize),
+        static_cast<float>(width - 10), 
+        static_cast<float>(fontSize),
+        text, 
+        "",
+        static_cast<float>(fontSize),
+        colorToVec4(style.getTextColor()),
+        LEFT,
+        false
+    );
+}
+
+Button::~Button() {
+    delete textField;  // Clean up the TextField
 }
 
 void Button::render() {
     if (!visible) return;
 
-    // Update displayed text based on current state (including selection)
-    updateDisplayedText();
+    // Update TextField based on current state
+    updateTextField();
 
     // Determine background color based on state
     SDL_Color bgColor;
@@ -58,32 +80,18 @@ void Button::render() {
         borderCmd.x2 = static_cast<float>(x + width);
         borderCmd.y2 = static_cast<float>(y + height);
         borderCmd.color = colorToVec4(borderColor);
-        borderCmd.layer = layer + 1;  // Draw border on top of background
+        borderCmd.layer = layer + 1;
         borderCmd.lineWidth = 1.0f;
         borderCmd.filled = false;
         
         renderContext->graphicQueue.push_back(borderCmd);
     }
 
-    // Draw text
-    SDL_Color textColor = style.getTextColor();
-    
-    // Calculate text position (centered within the button)
-    int textX = x + 5;  // Small padding from left edge
-    int textY = y + (height - fontSize) / 2;  // Vertically centered
-    
-    TextCommand textCmd;
-    textCmd.text = displayedText;
-    textCmd.font = "";  // Use default font
-    textCmd.x = static_cast<float>(textX);
-    textCmd.y = static_cast<float>(textY + fontSize);  // NanoVG y is baseline, so adjust
-    textCmd.width = 0;
-    textCmd.height = 0;
-    textCmd.color = colorToVec4(textColor);
-    textCmd.layer = layer + 2;  // Draw text on top of everything
-    textCmd.fontSize = static_cast<float>(fontSize);
-    
-    renderContext->textQueue.push_back(textCmd);
+    // Draw text using TextField
+    auto textCommands = textField->render(layer + 2);
+    for (const auto& textCmd : textCommands) {
+        renderContext->textQueue.push_back(textCmd);
+    }
 }
 
 void Button::handleEvent(const SDL_Event& event) {
@@ -98,6 +106,11 @@ void Button::handleEvent(const SDL_Event& event) {
             // Trigger hover callback if state changed
             if (hovered && !wasHovered && onHover) {
                 onHover();
+            }
+            
+            // If hover state changed, we need to update text field wrapping
+            if (hovered != wasHovered) {
+                updateTextField();
             }
             break;
         }
@@ -131,64 +144,32 @@ void Button::onPress() {
 
 void Button::setText(const std::string& newText) {
     text = newText;
-    updateDisplayedText();
+    updateTextField();  // Use updateTextField to ensure proper wrapping state
 }
 
 void Button::setFontSize(int size) {
     fontSize = size;
-    updateDisplayedText();
+    updateTextField();  // Use updateTextField to ensure proper wrapping state
 }
 
 void Button::setWrapText(bool wrap) {
     wrapText = wrap;
-    updateDisplayedText();
+    updateTextField();  // Use updateTextField to ensure proper wrapping state
 }
 
-void Button::updateDisplayedText() {
-    // If element is focused or wrapping is disabled, show full text
-    if (is_selected || !wrapText) {
-        displayedText = text;
-        return;
-    }
+void Button::updateTextField() {
+    // Update TextField position and text based on current state
+    int textX = x + 5;
+    int textY = y + (height - fontSize) / 2;
     
-    // Check if text needs wrapping
-    if (needsWrapping()) {
-        displayedText = wrapTextToFit();
-    } else {
-        displayedText = text;
-    }
-}
-
-bool Button::needsWrapping() const {
-    if (text.empty()) return false;
+    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY + fontSize));
+    textField->setSize(static_cast<float>(width - 10), static_cast<float>(fontSize));
     
-    // Rough estimation: average character width is about 0.65 * font size
-    // This is a simple approximation - for exact measurement you'd need text rendering metrics
-    double estimatedTextWidth = text.length() * fontSize * 0.4;
-    double availableWidth = width - 10;  // Account for padding
+    // Update text content
+    textField->setText(text);
     
-    return estimatedTextWidth > availableWidth;
-}
-
-std::string Button::wrapTextToFit() const {
-    if (text.empty()) return text;
-    
-    // Calculate how many characters can fit
-    double availableWidth = width - 10;  // Account for padding
-    int maxChars = static_cast<int>(availableWidth / (fontSize * 0.4));
-    
-    // Ensure we have at least 3 characters for "..." + some text
-    if (maxChars <= 3) {
-        return "...";
-    }
-    
-    // Calculate how many characters to show before adding "..."
-    int charsToShow = maxChars - 3;  // Reserve 3 characters for "..."
-    
-    if (charsToShow >= static_cast<int>(text.length())) {
-        return text;  // Text actually fits, no need to wrap
-    }
-    
-    // Return the beginning of the text with "..."
-    return text.substr(0, charsToShow) + "...";
+    // Determine if wrapping should be enabled based on button state
+    // Disable wrapping if button is selected or hovered, otherwise use wrapText setting
+    bool shouldWrap = wrapText && !(is_selected || hovered);
+    textField->setWrap(shouldWrap);
 }
