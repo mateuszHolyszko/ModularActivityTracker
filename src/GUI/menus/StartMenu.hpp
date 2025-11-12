@@ -3,6 +3,7 @@
 
 #include "../Menu.hpp"
 #include "../elements/Button.hpp"
+#include "../elements/Label.hpp"
 #include "../WorkThread.hpp"  
 
 class StartMenu : public Menu {

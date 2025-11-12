@@ -9,30 +9,18 @@ StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
 
 void StartMenu::init() {
     // // Title label (layer 1 - main content, static text)
-    // auto titleLabel = std::make_unique<Label>(
-    //     renderContext,  // Use renderContext instead of context
-    //     150, 70, 300, 60,
-    //     "Activity Tracker",
-    //     false,  // Show border
-    //     32,     // Large font
-    //     1       // Layer
-    // );
-    // titleLabel->setId("title_label");
-    // titleLabel->setSelectable(false);  // Static text, not selectable
-    // addElement(std::move(titleLabel));
-
-    // // Subtitle label (layer 1 - main content, static text)
-    // auto subtitleLabel = std::make_unique<Label>(
-    //     renderContext,  // Use renderContext instead of context
-    //     200, 130, 200, 30,
-    //     "Track Your Progress",
-    //     false,  // No border
-    //     24,     // Normal font
-    //     1       // Layer
-    // );
-    // subtitleLabel->setId("subtitle_label");
-    // subtitleLabel->setSelectable(false);  // Static text, not selectable
-    // addElement(std::move(subtitleLabel));
+    auto titleLabel = std::make_unique<Label>(
+        renderContext,  // Use renderContext instead of context
+        150, 70, 300, 60,
+        "Activity Tracker",
+        false,  // Show border
+        42,     // Large font
+        1,       // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    titleLabel->setId("title_label");
+    addElement(std::move(titleLabel));
 
     // Start Game button (layer 2 - interactive elements)
     auto startButton = std::make_unique<Button>(
