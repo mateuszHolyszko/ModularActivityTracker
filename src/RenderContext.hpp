@@ -2,6 +2,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <string>
+#include <GL/glew.h>
 
 // Forward declaration
 class SimpleRenderer;
@@ -19,7 +20,7 @@ struct TextCommand {
 };
 
 struct GraphicCommand {
-    enum Type { LINE, BOX, CIRCLE };  
+    enum Type { LINE, BOX, CIRCLE, TEXTURE };  // Add TEXTURE here
     Type type;
     float x1, y1, x2, y2; 
     // For circle: x1,y1 = center, x2 = radius (y2 unused)
@@ -27,6 +28,10 @@ struct GraphicCommand {
     int layer;
     float lineWidth;
     bool filled;
+    
+    // NEW: texture fields (valid when type == TEXTURE)
+    GLuint textureId = 0;
+    float u1 = 0.0f, v1 = 0.0f, u2 = 1.0f, v2 = 1.0f;  // UV coordinates
 };
 
 // ==============================

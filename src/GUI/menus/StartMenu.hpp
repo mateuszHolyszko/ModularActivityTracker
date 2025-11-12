@@ -4,6 +4,7 @@
 #include "../Menu.hpp"
 #include "../elements/Button.hpp"
 #include "../elements/Label.hpp"
+#include "../elements/ViewportElement.hpp"
 #include "../WorkThread.hpp"  
 
 class StartMenu : public Menu {

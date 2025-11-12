@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "../3D/Model3D.hpp"
 
 StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
     : Menu(context, workThread, "StartMenu") {   // <-- pass worker to base
@@ -89,6 +90,33 @@ void StartMenu::init() {
         setFocus(firstButton);
         std::cout << "StartMenu: Focus set to 'Start New Session' button" << std::endl;
     }
+
+    // 3D TEST
+    auto viewport = std::make_unique<ViewportElement>(
+    renderContext,
+    420, 150, 300, 300,  // x, y, width, height
+    3                   // layer
+    );
+
+    // Load model
+    auto model = std::make_shared<Model3D>();
+    if (model->loadFromOBJ("src/GUI/3D/models/Mat.obj")) {
+        model->normalizeToUnit(0.9f);
+    } else {
+        std::cerr << "Failed to load STL model\n";
+    }
+
+    // Set your 3D render callback (ViewportElement already sets camera & depth)
+    viewport->onRender3D = [model]() {
+        // simple material/color
+        glColor3f(0.8f, 0.8f, 0.8f);
+        model->drawImmediate();
+    };
+
+    viewport->setId("3d_viewport");
+    addElement(std::move(viewport));
+
+    // END 3D TEST
 }
 
 // ASYNC OPERATION EXAMPLE

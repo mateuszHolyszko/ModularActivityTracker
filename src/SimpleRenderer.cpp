@@ -174,6 +174,52 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
                     nvgStroke(vg);
                 }
             }
+            else if (graphicCmd.type == GraphicCommand::TEXTURE) {
+                // Draw textured quad into the UI FBO
+                GLuint tex = graphicCmd.textureId;
+                if (tex) {
+                    glMatrixMode(GL_PROJECTION);
+                    glPushMatrix();
+                    glLoadIdentity();
+                    glOrtho(0, texWidth, texHeight, 0, -1, 1);
+
+                    glMatrixMode(GL_MODELVIEW);
+                    glPushMatrix();
+                    glLoadIdentity();
+
+                    glEnable(GL_TEXTURE_2D);
+                    glBindTexture(GL_TEXTURE_2D, tex);
+                    glColor4f(1, 1, 1, 1);
+
+                    float x1 = graphicCmd.x1;
+                    float y1 = graphicCmd.y1;
+                    float x2 = graphicCmd.x2;
+                    float y2 = graphicCmd.y2;
+                    float u1 = graphicCmd.u1;
+                    float v1 = graphicCmd.v1;
+                    float u2 = graphicCmd.u2;
+                    float v2 = graphicCmd.v2;
+
+                    glBegin(GL_TRIANGLE_STRIP);
+                    glTexCoord2f(u1, v1);
+                    glVertex2f(x1, y1);
+                    glTexCoord2f(u2, v1);
+                    glVertex2f(x2, y1);
+                    glTexCoord2f(u1, v2);
+                    glVertex2f(x1, y2);
+                    glTexCoord2f(u2, v2);
+                    glVertex2f(x2, y2);
+                    glEnd();
+
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glDisable(GL_TEXTURE_2D);
+
+                    glPopMatrix();
+                    glMatrixMode(GL_PROJECTION);
+                    glPopMatrix();
+                    glMatrixMode(GL_MODELVIEW);
+                }
+            }
         }
     }
 
