@@ -1,0 +1,30 @@
+// Different loading styles
+LoadingWidget loading1, loading2, loading3, loading4;
+
+loading1.setStyle(LoadingWidget::Style::DOTS_PULSE);
+loading1.setPosition(200, 200);
+loading1.setColor(glm::vec4(1.0f, 0.3f, 0.3f, 1.0f)); // Red
+
+loading2.setStyle(LoadingWidget::Style::DOTS_ROTATING);
+loading2.setPosition(400, 200);
+loading2.setColor(glm::vec4(0.3f, 1.0f, 0.3f, 1.0f)); // Green
+
+loading3.setStyle(LoadingWidget::Style::BAR);
+loading3.setPosition(200, 400);
+loading3.setProgress(0.75f); // 75% progress
+loading3.setColor(glm::vec4(0.3f, 0.3f, 1.0f, 1.0f)); // Blue
+
+loading4.setStyle(LoadingWidget::Style::SPINNER);
+loading4.setPosition(400, 400);
+loading4.setColor(glm::vec4(1.0f, 0.8f, 0.3f, 1.0f)); // Yellow
+
+// In your update loop
+loading1.update(deltaTime);
+loading2.update(deltaTime);
+loading3.update(deltaTime); 
+loading4.update(deltaTime);
+
+loading1.render(ctx);
+loading2.render(ctx);
+loading3.render(ctx);
+loading4.render(ctx);

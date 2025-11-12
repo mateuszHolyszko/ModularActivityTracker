@@ -19,13 +19,14 @@ struct TextCommand {
 };
 
 struct GraphicCommand {
-    enum Type { LINE, BOX };
+    enum Type { LINE, BOX, CIRCLE };  
     Type type;
-    float x1, y1, x2, y2; // For line: start and end points; For box: top-left and bottom-right
+    float x1, y1, x2, y2; 
+    // For circle: x1,y1 = center, x2 = radius (y2 unused)
     glm::vec4 color;
     int layer;
-    float lineWidth; // For line thickness or box border
-    bool filled; // For box: filled or outline only
+    float lineWidth;
+    bool filled;
 };
 
 // ==============================

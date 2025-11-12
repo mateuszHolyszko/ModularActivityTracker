@@ -1,8 +1,10 @@
 #include "StartMenu.hpp"
 #include <iostream>
+#include <thread>
+#include <chrono>
 
-StartMenu::StartMenu(RenderContext* context)
-    : Menu(context, "StartMenu") {
+StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
+    : Menu(context, workThread, "StartMenu") {   // <-- pass worker to base
 }
 
 void StartMenu::init() {
@@ -101,9 +103,23 @@ void StartMenu::init() {
     }
 }
 
+// ASYNC OPERATION EXAMPLE
 void StartMenu::onStartGame() {
     std::cout << "StartMenu: Starting new session..." << std::endl;
-    // TODO: Transition to session menu
+
+    // Ensure no other background work is running
+    if (worker && !worker->isRunning()) {
+        worker->start([this]() {
+            // Simulate heavy loading task
+            std::cout << "[WorkThread] Loading resources..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+
+            // Example: do something async (no OpenGL here!)
+            std::cout << "[WorkThread] Session ready!" << std::endl;
+        });
+    } else {
+        std::cout << "[StartMenu] Worker is busy, ignoring new task.\n";
+    }
 }
 
 void StartMenu::onViewHistory() {

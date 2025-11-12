@@ -2,9 +2,9 @@
 #define BUTTON_HPP
 
 #include "BaseElement.hpp"
-#include "../Style.hpp"
-#include "../RenderContext.hpp"
-#include "TextField.hpp"
+#include "../../Style.hpp"
+#include "../../RenderContext.hpp"
+#include "../TextField.hpp"
 #include <functional>
 
 class Button : public BaseElement {

@@ -2,11 +2,12 @@
 #define STARTMENU_HPP
 
 #include "../Menu.hpp"
-#include "../Button.hpp"
+#include "../elements/Button.hpp"
+#include "../WorkThread.hpp"  
 
 class StartMenu : public Menu {
 public:
-    StartMenu(RenderContext* context);
+    StartMenu(RenderContext* context, WorkThread* workThread);
     void init() override;
 
 private:

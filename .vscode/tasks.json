@@ -7,8 +7,8 @@
             "command": "g++",
             "args": [
                 "src/main.cpp",
-                "src/GUI/BaseElement.cpp",
-                "src/GUI/Button.cpp",
+                "src/GUI/elements/BaseElement.cpp",
+                "src/GUI/elements/Button.cpp",
                 "src/GUI/TextField.cpp",
                 "src/GUI/Menu.cpp",
                 "src/GUI/menus/StartMenu.cpp",
@@ -16,6 +16,7 @@
                 "src/RenderContext.cpp",
                 "src/QuadRenderer.cpp",
                 "src/PostProcess.cpp",
+                "src/GUI/widgets/LoadingWidget.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",
                 "main.exe",

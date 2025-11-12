@@ -5,8 +5,9 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "BaseElement.hpp"
+#include "elements/BaseElement.hpp"
 #include "../RenderContext.hpp"
+#include "WorkThread.hpp"
 
 class Menu {
 protected:
@@ -14,9 +15,10 @@ protected:
     BaseElement* current_focus;
     std::vector<std::unique_ptr<BaseElement>> guiElements;
     RenderContext* renderContext;
+    WorkThread* worker;
 
 public:
-    Menu(RenderContext* context, const std::string& menuName);
+    Menu(RenderContext* context, WorkThread* workThread, const std::string& menuName);
     virtual ~Menu() = default;
 
     // Pure virtual method that derived menus must implement

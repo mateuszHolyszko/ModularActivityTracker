@@ -164,6 +164,15 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
                 } else {
                     nvgStroke(vg);
                 }
+            } 
+            else if (graphicCmd.type == GraphicCommand::CIRCLE) {
+                nvgBeginPath(vg);
+                nvgCircle(vg, graphicCmd.x1, graphicCmd.y1, graphicCmd.x2);
+                if (graphicCmd.filled) {
+                    nvgFill(vg);
+                } else {
+                    nvgStroke(vg);
+                }
             }
         }
     }

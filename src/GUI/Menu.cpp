@@ -3,13 +3,11 @@
 #include <cmath>
 #include <limits>
 
-Menu::Menu(RenderContext* context, const std::string& menuName)
-    : renderContext(context), name(menuName), current_focus(nullptr) {
-}
+Menu::Menu(RenderContext* context, WorkThread* workThread, const std::string& menuName)
+    : renderContext(context), worker(workThread), name(menuName), current_focus(nullptr) {}
+
 
 void Menu::render() {
-    // Clear the render context queues at the start of menu rendering
-    renderContext->clearQueues();
     
     // Create a temporary vector of visible elements
     std::vector<BaseElement*> visibleElements;

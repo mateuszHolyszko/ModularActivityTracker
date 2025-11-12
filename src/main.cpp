@@ -2,7 +2,9 @@
 #include "SimpleRenderer.hpp"
 #include "QuadRenderer.hpp"
 #include "GUI/Menus/StartMenu.hpp"
-#include "PostProcess.hpp"  // Add this include
+#include "PostProcess.hpp"  
+#include "GUI/widgets/LoadingWidget.hpp"  
+#include "GUI/WorkThread.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>  // Keep for desktop; 
@@ -49,6 +51,13 @@ int main(int argc, char* argv[]) {
 
     // Initialize render context and renderer
     RenderContext ctx;
+
+    WorkThread worker;
+    LoadingWidget defultLoading;
+    defultLoading.setStyle(LoadingWidget::Style::DOTS_PULSE);
+    defultLoading.setPosition(screenW/2, screenH/2);
+    defultLoading.setColor(glm::vec4(style.text_color.r/255, style.text_color.g/255, style.text_color.b/255, 1.0f));
+
     SimpleRenderer renderer;
     QuadRenderer quad;
     PostProcess postProc;  // Add PostProcess instance
@@ -72,61 +81,93 @@ int main(int argc, char* argv[]) {
     postProc.addPass("src/GUI/shaders/barrel.vert", "src/GUI/shaders/barrel.frag", "barrel");  // Add your barrel  pass
 
     // Create and initialize the start menu
-    StartMenu startMenu(&ctx);
+    StartMenu startMenu(&ctx, &worker);
     startMenu.init();
 
     bool running = true;
     SDL_Event e;
+    
+    // Delta time variables
+    Uint32 lastTime = SDL_GetTicks();
+    Uint32 currentTime;
+    float dt;
 
     // Main game loop
     while (running) {
-        // Handle events
+        // Calculate delta time
+        currentTime = SDL_GetTicks();
+        dt = (currentTime - lastTime) / 1000.0f; // Convert to seconds
+        lastTime = currentTime;
+        
+        // Clamp delta time to avoid spiral of death
+        if (dt > 0.1f) dt = 0.1f;
+
+        // Handle events only if no background task is running
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
+            if (e.type == SDL_QUIT) running = false;
+            if (!worker.isRunning()) {
+                startMenu.handleEvent(e);
             }
-            // Pass events to the menu
-            startMenu.handleEvent(e);
         }
 
-        // Update menu (for animations, etc.)
-        startMenu.update(0.016f); // ~60 FPS delta time
+        // Check background worker
+        if (worker.isRunning()) {
+            // Run loading animation with proper delta time
+            defultLoading.update(dt);
+            defultLoading.render(ctx);
+        } else if (worker.isFinished()) {
+            // Background task finished — process results or reset
+            try {
+                worker.checkError(); // rethrow if any exception
+            } catch (std::exception& ex) {
+                std::cerr << "Background error: " << ex.what() << std::endl;
+            }
+            worker.reset();
+        }
+
+        // Update menu (for animations, etc.) with proper delta time
+        startMenu.update(dt);
 
         // Clear OpenGL framebuffer
-        glClearColor(style.bg_color.r / 255.0f, 
-             style.bg_color.g / 255.0f, 
-             style.bg_color.b / 255.0f, 
-             1.0f);
+        glClearColor(style.bg_color.r / 255.0f,
+                     style.bg_color.g / 255.0f,
+                     style.bg_color.b / 255.0f,
+                     1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Render menu - this clears queues and collects render commands from UI elements
+        // Render menu - this collects render commands from UI elements
         startMenu.render();
 
         // Process all rendering commands to texture
         renderer.renderToTexture(ctx.textQueue, ctx.graphicQueue);
 
-        // Apply post-processing
-        postProc.setUniform("distortion", "time", SDL_GetTicks() / 1000.0f);
-        postProc.setUniform("distortion", "intensity", 0.2f);  // Adjust 0.0-1.0 for strength
-        postProc.setUniform("barrel", "time", SDL_GetTicks() / 1000.0f);  // Example: Pass time in seconds
-        GLuint finalTex = postProc.process(renderer.getTexture());
+        // Clear render context queues for next frame
+        ctx.clearQueues();
 
-        // Draw the final texture to screen
-        quad.draw(finalTex);  // Use processed texture
+        // Apply post-processing 
+        postProc.setUniform("distortion", "time", SDL_GetTicks() / 1000.0f); 
+        postProc.setUniform("distortion", "intensity", 0.2f); // Adjust 0.0-1.0 for strength 
+        postProc.setUniform("barrel", "time", SDL_GetTicks() / 1000.0f); // Example: Pass time in seconds 
+        GLuint finalTex = postProc.process(renderer.getTexture()); 
+        
+        // Draw the final texture to screen 
+        quad.draw(finalTex); // Use processed texture 
 
-        SDL_GL_SwapWindow(window);
-
-        // Cap frame rate (optional)
-        SDL_Delay(32); // ~30 FPS
+        SDL_GL_SwapWindow(window); 
+        
+        // Frame rate cap with adaptive delay
+        Uint32 frameTime = SDL_GetTicks() - currentTime;
+        const Uint32 targetFrameTime = 16; // ~60 FPS
+        if (frameTime < targetFrameTime) {
+            SDL_Delay(targetFrameTime - frameTime);
+        }
     }
 
-    // Cleanup
-    postProc.shutdown();  // Add PostProcess shutdown
+    postProc.shutdown();
     renderer.shutdown();
     quad.shutdown();
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    
     return 0;
 }
