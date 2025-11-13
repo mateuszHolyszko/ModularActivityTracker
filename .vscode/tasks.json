@@ -22,6 +22,7 @@
                 "src/GUI/3D/Model3D.cpp",
                 "src/GUI/3D/ShaderProgram.cpp",
                 "src/GUI/NotificationSystem.cpp",
+                "src/database/DatabaseManager.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",
                 "main.exe",
@@ -32,7 +33,9 @@
                 "-I",
                 "external/nanovg/src",
                 "-I",
-                "external/tinyobjloader",       
+                "external/tinyobjloader",
+                "-I",
+                "external/sqlite",       
                 "-L",
                 "C:/msys64/mingw64/lib",
                 "-lmingw32",
@@ -41,7 +44,8 @@
                 "-lglew32", // For desktop OpenGL
                 "-lopengl32",
                 //"-lGLESv2", // Use GLESv2 instead of OpenGL for mobile
-                "-lSDL2_ttf"
+                "-lSDL2_ttf",
+                "-lsqlite3"
             ],
             "group": {
                 "kind": "build",

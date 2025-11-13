@@ -6,6 +6,7 @@
 #include "GUI/widgets/LoadingWidget.hpp"  
 #include "GUI/WorkThread.hpp"
 #include "GUI/NotificationSystem.hpp"
+#include "database/DatabaseManager.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>  // Keep for desktop; 
@@ -16,6 +17,15 @@ int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
+    }
+
+    // Initialize database
+    DatabaseManager dbManager;
+    if (!dbManager.initialize()) {
+        std::cerr << "Failed to initialize database!" << std::endl;
+        return 1; // Uncomment to exit if database is critical
+    } else {
+        std::cerr << "Database initialized successfully!" << std::endl;
     }
 
     const int screenW = 800;
