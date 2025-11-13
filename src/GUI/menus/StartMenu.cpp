@@ -7,15 +7,20 @@
 #include "../NotificationSystem.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "StartMenu_layout.hpp"
+
 StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
     : Menu(context, workThread, "StartMenu") {   // <-- pass worker to base
 }
 
 void StartMenu::init() {
+
+    // Load box from layout (x,y,width,height)
+    const Box& boxLabel = layout.at("Label");  // get box by name
     // // Title label (layer 1 - main content, static text)
     auto titleLabel = std::make_unique<Label>(
         renderContext,  // Use renderContext instead of context
-        150, 70, 300, 60,
+        boxLabel.x, boxLabel.y, boxLabel.width, boxLabel.height,
         "Activity Tracker",
         false,  // Show border
         42,     // Large font
@@ -26,10 +31,11 @@ void StartMenu::init() {
     titleLabel->setId("title_label");
     addElement(std::move(titleLabel));
 
+    const Box& boxButton1 = layout.at("Button1");
     // Start Game button (layer 2 - interactive elements)
     auto startButton = std::make_unique<Button>(
         renderContext,  // Use renderContext instead of context
-        150, 180, 300, 50,
+        boxButton1.x, boxButton1.y, boxButton1.width, boxButton1.height,
         "Start New Session",
         true,  // Show border
         24,    // Medium font
@@ -42,10 +48,11 @@ void StartMenu::init() {
     startButton->setOnPress([this]() { onStartGame(); });
     addElement(std::move(startButton));
 
+    const Box& boxButton2 = layout.at("Button2");
     // View History button (layer 2 - interactive elements)
     auto historyButton = std::make_unique<Button>(
         renderContext,
-        150, 250, 300, 50,
+        boxButton2.x, boxButton2.y, boxButton2.width, boxButton2.height,
         "View History testtesttesttesttesttesttesttesttest",
         true,  // Show border
         24,    // Medium font
@@ -59,10 +66,11 @@ void StartMenu::init() {
     addElement(std::move(historyButton));
     
 
+    const Box& boxButton3 = layout.at("Button3");
     // Settings button (layer 2 - interactive elements)
     auto settingsButton = std::make_unique<Button>(
         renderContext,  // Use renderContext instead of context
-        150, 320, 300, 50,
+        boxButton3.x, boxButton3.y, boxButton3.width, boxButton3.height,
         "Settings",
         true,  // Show border
         24,    // Medium font
@@ -73,10 +81,11 @@ void StartMenu::init() {
     settingsButton->setOnPress([this]() { onSettings(); });
     addElement(std::move(settingsButton));
 
+    const Box& boxButton4 = layout.at("Button4");
     // Exit button (layer 2 - interactive elements)
     auto exitButton = std::make_unique<Button>(
         renderContext,  // Use renderContext instead of context
-        150, 390, 300, 50,
+        boxButton4.x, boxButton4.y, boxButton4.width, boxButton4.height,
         "Exit",
         true,  // Show border
         24,    // Medium font
@@ -94,10 +103,11 @@ void StartMenu::init() {
         std::cout << "StartMenu: Focus set to 'Start New Session' button" << std::endl;
     }
 
+    const Box& boxViewPort = layout.at("ViewPort");
     // 3D TEST
     auto viewport = std::make_unique<ViewportElement>(
     renderContext,
-    470, 110, 300, 300,  // x, y, width, height
+    boxViewPort.x, boxViewPort.y, boxViewPort.width, boxViewPort.height,
     3,                   // layer
     nullptr,              // parent
     true                // show border
