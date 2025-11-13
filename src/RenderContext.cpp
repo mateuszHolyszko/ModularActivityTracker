@@ -1,5 +1,6 @@
 #include "RenderContext.hpp"
 #include "SimpleRenderer.hpp"
+#include "GUI/NotificationSystem.hpp" 
 #include <iostream>
 
 float RenderContext::measureTextWidth(const std::string& text, const std::string& font, float fontSize) {
@@ -8,4 +9,10 @@ float RenderContext::measureTextWidth(const std::string& text, const std::string
         return 0.0f;
     }
     return renderer->measureTextWidth(text, font, fontSize);
+}
+
+void RenderContext::addNotification(const std::string& text) {
+    if (notificationSystem) {
+        notificationSystem->addNotification(text);
+    }
 }

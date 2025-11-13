@@ -43,6 +43,7 @@ public:
     virtual const std::string& getName() const { return name; }
     virtual size_t getElementCount() const { return guiElements.size(); }
     virtual bool isEmpty() const { return guiElements.empty(); }
+    RenderContext* getRenderContext() const { return renderContext; }
 
 private:
     // Arrow navigation helper method

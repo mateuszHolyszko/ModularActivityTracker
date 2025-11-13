@@ -4,6 +4,7 @@
 #include <chrono>
 #include "../3D/Model3D.hpp"
 #include "../3D/ShaderProgram.hpp"
+#include "../NotificationSystem.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
@@ -153,15 +154,15 @@ void StartMenu::onStartGame() {
 
 void StartMenu::onViewHistory() {
     std::cout << "StartMenu: Opening history..." << std::endl;
-    // TODO: Transition to history menu
+    renderContext->addNotification("Test1");
 }
 
 void StartMenu::onSettings() {
     std::cout << "StartMenu: Opening settings..." << std::endl;
-    // TODO: Transition to settings menu
+    renderContext->addNotification("Test2");
 }
 
 void StartMenu::onExit() {
     std::cout << "StartMenu: Exiting application..." << std::endl;
-    // TODO: Handle application exit
+    renderContext->addNotification("Test3Test3Test3Test3Test3Test3Test3Test3Test3Test3Test3Test3");
 }

@@ -5,6 +5,7 @@
 #include "PostProcess.hpp"  
 #include "GUI/widgets/LoadingWidget.hpp"  
 #include "GUI/WorkThread.hpp"
+#include "GUI/NotificationSystem.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>  // Keep for desktop; 
@@ -62,6 +63,21 @@ int main(int argc, char* argv[]) {
     QuadRenderer quad;
     PostProcess postProc;  // Add PostProcess instance
 
+    // Initialize notification system
+    auto notificationSystem = std::make_unique<NotificationSystem>(
+        &ctx, 
+        screenW/2-150.0f,    // x position (left side)
+        50,    // y position (from top)
+        300.0f,   // width
+        200.0f,   // height
+        5.0f,     // default delay in seconds
+        "default", // font
+        32.0f,    // font size
+        0.5f      // fade duration in seconds (new parameter)
+    );
+    // Connect it to the render context
+    ctx.notificationSystem = notificationSystem.get();
+
     if (!renderer.init(&ctx, screenW, screenH)) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
         return 1;
@@ -110,6 +126,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // Update notification system (remove expired notifications)
+        if (ctx.notificationSystem) {
+            ctx.notificationSystem->update();
+        }
+
         // Check background worker
         if (worker.isRunning()) {
             // Run loading animation with proper delta time
@@ -130,13 +151,18 @@ int main(int argc, char* argv[]) {
 
         // Clear OpenGL framebuffer
         glClearColor(style.bg_color.r / 255.0f,
-                     style.bg_color.g / 255.0f,
-                     style.bg_color.b / 255.0f,
-                     1.0f);
+                    style.bg_color.g / 255.0f,
+                    style.bg_color.b / 255.0f,
+                    1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Render menu - this collects render commands from UI elements
         startMenu.render();
+
+        // Render notifications (this adds notification commands to the queues)
+        if (ctx.notificationSystem) {
+            ctx.notificationSystem->render(100); // Use high layer for notifications
+        }
 
         // Process all rendering commands to texture
         renderer.renderToTexture(ctx.textQueue, ctx.graphicQueue);

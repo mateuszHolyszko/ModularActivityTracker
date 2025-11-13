@@ -16,11 +16,18 @@ bool Model3D::loadFromOBJ(const std::string& path) {
 
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    bool ok = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str());
-    if (!warn.empty()) std::cerr << "[Model3D] tinyobj warning: " << warn << "\n";
+    // Load OBJ without materials and ignore material-related warnings
+    bool ok = tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &err, path.c_str(), nullptr, true, false);
+    if (!warn.empty()) {
+        // Filter out material-related warnings
+        if (warn.find("material") == std::string::npos && 
+            warn.find("Material file") == std::string::npos &&
+            warn.find(".mtl") == std::string::npos) {
+            std::cerr << "[Model3D] tinyobj warning: " << warn << "\n";
+        }
+    }
     if (!err.empty()) std::cerr << "[Model3D] tinyobj error: " << err << "\n";
     if (!ok) {
         std::cerr << "[Model3D] Failed to load OBJ: " << path << "\n";
@@ -83,7 +90,7 @@ bool Model3D::loadFromOBJ(const std::string& path) {
     }
 
     computeNormalsIfMissing();
-    createVAO();  // NEW: create VAO after loading
+    createVAO();
     std::cerr << "[Model3D] Loaded " << tris.size() << " triangles from " << path << "\n";
     return !tris.empty();
 }

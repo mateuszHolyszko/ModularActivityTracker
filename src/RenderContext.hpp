@@ -1,11 +1,13 @@
 #pragma once
+
 #include <vector>
 #include <glm/glm.hpp>
 #include <string>
 #include <GL/glew.h>
 
-// Forward declaration
+// Forward declarations
 class SimpleRenderer;
+class NotificationSystem;
 
 // ==============================
 // Command structures
@@ -20,34 +22,35 @@ struct TextCommand {
 };
 
 struct GraphicCommand {
-    enum Type { LINE, BOX, CIRCLE, TEXTURE };  // Add TEXTURE here
+    enum Type { LINE, BOX, CIRCLE, TEXTURE };
     Type type;
-    float x1, y1, x2, y2; 
-    // For circle: x1,y1 = center, x2 = radius (y2 unused)
+    float x1, y1, x2, y2;
     glm::vec4 color;
     int layer;
     float lineWidth;
     bool filled;
     
-    // NEW: texture fields (valid when type == TEXTURE)
     GLuint textureId = 0;
-    float u1 = 0.0f, v1 = 0.0f, u2 = 1.0f, v2 = 1.0f;  // UV coordinates
+    float u1 = 0.0f, v1 = 0.0f, u2 = 1.0f, v2 = 1.0f;
 };
 
 // ==============================
 // RenderContext
 // ==============================
 struct RenderContext {
-    std::vector<TextCommand> textQueue;  // commands accumulated by GUI elements
-    std::vector<GraphicCommand> graphicQueue;  // graphic commands
+    std::vector<TextCommand> textQueue;
+    std::vector<GraphicCommand> graphicQueue;
 
-    SimpleRenderer* renderer = nullptr;  // pointer, not owned
+    SimpleRenderer* renderer = nullptr;
+    NotificationSystem* notificationSystem = nullptr;  // Notification system reference
 
     void clearQueues() {
         textQueue.clear();
         graphicQueue.clear();
     }
     
-    // Text measurement method - delegates to SimpleRenderer
     float measureTextWidth(const std::string& text, const std::string& font, float fontSize);
+    
+    // Forward declaration only - implementation in .cpp
+    void addNotification(const std::string& text);
 };
