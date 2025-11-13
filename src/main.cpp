@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     WorkThread worker;
     LoadingWidget defultLoading;
-    defultLoading.setStyle(LoadingWidget::Style::DOTS_PULSE);
+    defultLoading.setStyle(LoadingWidget::Style::SPINNER);
     defultLoading.setPosition(screenW/2, screenH/2);
     defultLoading.setColor(glm::vec4(style.text_color.r/255, style.text_color.g/255, style.text_color.b/255, 1.0f));
 

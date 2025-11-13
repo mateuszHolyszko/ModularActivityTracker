@@ -3,6 +3,8 @@
 #include <thread>
 #include <chrono>
 #include "../3D/Model3D.hpp"
+#include "../3D/ShaderProgram.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
     : Menu(context, workThread, "StartMenu") {   // <-- pass worker to base
@@ -94,23 +96,34 @@ void StartMenu::init() {
     // 3D TEST
     auto viewport = std::make_unique<ViewportElement>(
     renderContext,
-    420, 150, 300, 300,  // x, y, width, height
-    3                   // layer
+    470, 110, 300, 300,  // x, y, width, height
+    3,                   // layer
+    nullptr,              // parent
+    true                // show border
     );
 
     // Load model
     auto model = std::make_shared<Model3D>();
     if (model->loadFromOBJ("src/GUI/3D/models/Mat.obj")) {
-        model->normalizeToUnit(0.9f);
+        model->normalizeToUnit(1.6f);
     } else {
-        std::cerr << "Failed to load STL model\n";
+        std::cerr << "Failed to load OBJ model\n";
     }
 
-    // Set your 3D render callback (ViewportElement already sets camera & depth)
-    viewport->onRender3D = [model]() {
-        // simple material/color
-        glColor3f(0.8f, 0.8f, 0.8f);
-        model->drawImmediate();
+    // Load shader
+    auto shader = std::make_shared<ShaderProgram>();
+    if (!shader->loadFromFiles("src/GUI/3D/shaders/model.vert", "src/GUI/3D/shaders/model.frag")) {
+        std::cerr << "Failed to load shaders\n";
+    }
+
+    // Give the shader to the viewport (viewport will compute & set u_mvp)
+    viewport->setShader(shader);
+
+    // Set your 3D render callback with shader: only draw the model (viewport sets MVP)
+    viewport->onRender3D = [model, shader]() {
+        // Draw using the shader program (viewport already bound it and set u_mvp,
+        // but drawWithShader binds again safely). Alternatively use immediate draw.
+        model->drawWithShader(shader->getProgram());
     };
 
     viewport->setId("3d_viewport");

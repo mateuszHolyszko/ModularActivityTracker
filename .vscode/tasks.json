@@ -20,6 +20,7 @@
                 "src/PostProcess.cpp",
                 "src/GUI/widgets/LoadingWidget.cpp",
                 "src/GUI/3D/Model3D.cpp",
+                "src/GUI/3D/ShaderProgram.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",
                 "main.exe",

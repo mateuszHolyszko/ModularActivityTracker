@@ -2,11 +2,14 @@
 #include <iostream>
 #include <algorithm>
 #include <cfloat>
-#include <GL/glew.h>
 
-// tinyobjloader header (must be added to external/tinyobjloader)
+// tinyobjloader header
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../../external/tinyobjloader/tiny_obj_loader.h"
+
+Model3D::~Model3D() {
+    destroyVAO();
+}
 
 bool Model3D::loadFromOBJ(const std::string& path) {
     tris.clear();
@@ -30,7 +33,6 @@ bool Model3D::loadFromOBJ(const std::string& path) {
         for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
             int fv = shape.mesh.num_face_vertices[f];
             if (fv != 3) {
-                // skip non-tri faces (shouldn't happen for triangulated OBJs)
                 index_offset += fv;
                 continue;
             }
@@ -81,6 +83,7 @@ bool Model3D::loadFromOBJ(const std::string& path) {
     }
 
     computeNormalsIfMissing();
+    createVAO();  // NEW: create VAO after loading
     std::cerr << "[Model3D] Loaded " << tris.size() << " triangles from " << path << "\n";
     return !tris.empty();
 }
@@ -118,17 +121,87 @@ void Model3D::normalizeToUnit(float margin) {
         t.v1 = (t.v1 - center) * scale;
         t.v2 = (t.v2 - center) * scale;
     }
+    
+    // Recreate VAO with normalized data
+    createVAO();
+}
+
+bool Model3D::createVAO() {
+    destroyVAO();
+    if (tris.empty()) return false;
+
+    // Build vertex and index arrays
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> normals;
+    
+    for (size_t i = 0; i < tris.size(); ++i) {
+        const auto& tri = tris[i];
+        positions.push_back(tri.v0);
+        positions.push_back(tri.v1);
+        positions.push_back(tri.v2);
+        
+        normals.push_back(tri.n);
+        normals.push_back(tri.n);
+        normals.push_back(tri.n);
+        
+        indices.push_back(i * 3 + 0);
+        indices.push_back(i * 3 + 1);
+        indices.push_back(i * 3 + 2);
+    }
+
+    // Create VAO
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Position VBO
+    glGenBuffers(1, &posVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), positions.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    // Normal VBO
+    glGenBuffers(1, &normalVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    // Index buffer
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+    glBindVertexArray(0);
+    return true;
+}
+
+void Model3D::destroyVAO() {
+    if (indexBuffer) glDeleteBuffers(1, &indexBuffer);
+    if (normalVBO) glDeleteBuffers(1, &normalVBO);
+    if (posVBO) glDeleteBuffers(1, &posVBO);
+    if (vao) glDeleteVertexArrays(1, &vao);
+    indexBuffer = normalVBO = posVBO = vao = 0;
+    indices.clear();
 }
 
 void Model3D::drawImmediate() const {
-    // Flip model on Y axis here to correct upside-down import.
-    // Also flip normal Y to keep lighting sensible.
     glBegin(GL_TRIANGLES);
     for (const auto& t : tris) {
-        glNormal3f(t.n.x, -t.n.y, t.n.z);                // invert Y in normals
-        glVertex3f(t.v0.x, -t.v0.y, t.v0.z);             // invert Y on vertices
-        glVertex3f(t.v1.x, -t.v1.y, t.v1.z);
-        glVertex3f(t.v2.x, -t.v2.y, t.v2.z);
+        glNormal3f(t.n.x, t.n.y, t.n.z);
+        glVertex3f(t.v0.x, t.v0.y, t.v0.z);
+        glVertex3f(t.v1.x, t.v1.y, t.v1.z);
+        glVertex3f(t.v2.x, t.v2.y, t.v2.z);
     }
     glEnd();
+}
+
+void Model3D::drawWithShader(GLuint shaderProgram) const {
+    if (!vao || indices.empty()) return;
+
+    glUseProgram(shaderProgram);
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
 }

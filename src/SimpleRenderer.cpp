@@ -200,14 +200,15 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
                     float u2 = graphicCmd.u2;
                     float v2 = graphicCmd.v2;
 
+                    // FLIP V coordinates (swap v1 and v2) to correct upside-down rendering
                     glBegin(GL_TRIANGLE_STRIP);
-                    glTexCoord2f(u1, v1);
+                    glTexCoord2f(u1, v2);  // Changed from v1 to v2
                     glVertex2f(x1, y1);
-                    glTexCoord2f(u2, v1);
+                    glTexCoord2f(u2, v2);  // Changed from v1 to v2
                     glVertex2f(x2, y1);
-                    glTexCoord2f(u1, v2);
+                    glTexCoord2f(u1, v1);  // Changed from v2 to v1
                     glVertex2f(x1, y2);
-                    glTexCoord2f(u2, v2);
+                    glTexCoord2f(u2, v1);  // Changed from v2 to v1
                     glVertex2f(x2, y2);
                     glEnd();
 

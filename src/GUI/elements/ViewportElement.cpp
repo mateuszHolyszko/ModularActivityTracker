@@ -4,9 +4,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "../3D/ShaderProgram.hpp"
  
-ViewportElement::ViewportElement(RenderContext* ctx, int x_, int y_, int w_, int h_, int layer, BaseElement* parent)
-    : BaseElement(ctx, x_, y_, w_, h_, false, layer, parent), texW(w_), texH(h_) {
+ViewportElement::ViewportElement(RenderContext* ctx, int x_, int y_, int w_, int h_, int layer, BaseElement* parent, bool showBorder_)
+    : BaseElement(ctx, x_, y_, w_, h_, false, layer, parent), texW(w_), texH(h_), showBorder(showBorder_) {
     renderContext = ctx;
     if (!createFBO(texW, texH)) {
         std::cerr << "[ViewportElement] Failed to create FBO.\n";
@@ -63,8 +64,30 @@ void ViewportElement::destroyFBO() {
 }
 
 void ViewportElement::update(float dt) {
-    // advance rotation (degrees)
-    rotationDeg += rotationSpeedDegPerSec * dt;
+    // Convert rotation to 0-360 range
+    float normalizedRotation = fmod(rotationDeg, 360.0f);
+    if (normalizedRotation < 0) normalizedRotation += 360.0f;
+    
+    // Calculate how close we are to 180 degrees (backward facing)
+    float distanceFromBack = fabs(normalizedRotation - 180.0f);
+    
+    // Speed multiplier: much faster when facing backward
+    float speedMultiplier;
+    if (distanceFromBack < 45.0f) {
+        // Very fast when within ±45 degrees of 180
+        speedMultiplier = 5.0f; // 5x speed
+    } else if (distanceFromBack < 90.0f) {
+        // Fast when within ±90 degrees of 180
+        speedMultiplier = 2.5f; // 2.5x speed
+    } else {
+        // Normal speed otherwise
+        speedMultiplier = 1.0f;
+    }
+    
+    // Apply rotation with speed multiplier
+    rotationDeg += rotationSpeedDegPerSec * speedMultiplier * dt;
+    
+    // Keep rotation in 0-360 range
     if (rotationDeg >= 360.0f) rotationDeg -= 360.0f;
 }
 
@@ -86,27 +109,40 @@ void ViewportElement::render3DToTexture() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_TRUE);
-    //glDisable(GL_CULL_FACE);                 // keep disabled while debugging/wireframe
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_BLEND);
     glEnable(GL_NORMALIZE);
 
-    // Setup projection using glm (avoids glu dependency)
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)texW / (float)texH, 0.1f, 10.0f);
+    // Setup ORTHOGRAPHIC projection instead of perspective
+    float aspect = (float)texW / (float)texH;
+    float orthoSize = 1.0f; // Adjust this to control zoom level
+    glm::mat4 proj = glm::ortho(-orthoSize * aspect, orthoSize * aspect, 
+                                -orthoSize, orthoSize, 
+                                -10.0f, 10.0f);
+
+    // Simple view - just move back a bit to see the object
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+    
+    // model matrix: rotate model around Y using viewport's rotationDeg
+    glm::mat4 model_mat = glm::rotate(glm::mat4(1.0f), glm::radians(rotationDeg), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Compose MVP for shader
+    glm::mat4 mvp = proj * view * model_mat;
+
+    // Push matrices for any fixed-pipeline draws (keep compatibility)
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadMatrixf(glm::value_ptr(proj));
 
-    // Setup a simple view (camera back a bit + tilt) and apply spin
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
-    // apply element spin around Y
-    view = glm::rotate(view, glm::radians(rotationDeg), glm::vec3(0.0f, 1.0f, 0.0f));
-    // small tilt
-    //view = glm::rotate(view, glm::radians(25.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    glLoadMatrixf(glm::value_ptr(view));
+    glLoadMatrixf(glm::value_ptr(view * model_mat));
+
+    // Bind shader and set uniform if provided
+    if (shader) {
+        shader->use();
+        shader->setMat4("u_mvp", mvp);
+    }
 
     // Call user-provided render callback (should only emit 3D draw calls)
     if (onRender3D) {
@@ -117,6 +153,11 @@ void ViewportElement::render3DToTexture() {
             std::cerr << "[ViewportElement] onRender3D callback is null\n";
             warned = true;
         }
+    }
+
+    // Unbind shader to avoid leaking state
+    if (shader) {
+        glUseProgram(0);
     }
 
     // Restore matrices and GL state
@@ -153,6 +194,24 @@ void ViewportElement::render() {
     texCmd.v2 = 1.0f;
 
     renderContext->graphicQueue.push_back(texCmd);
+
+    // Draw border if enabled (similar to Button class)
+    if (showBorder) {
+        SDL_Color borderColor = style.getBorderColor();
+        
+        GraphicCommand borderCmd;
+        borderCmd.type = GraphicCommand::BOX;
+        borderCmd.x1 = static_cast<float>(getAbsoluteX());
+        borderCmd.y1 = static_cast<float>(getAbsoluteY());
+        borderCmd.x2 = static_cast<float>(getAbsoluteX() + width);
+        borderCmd.y2 = static_cast<float>(getAbsoluteY() + height);
+        borderCmd.color = colorToVec4(borderColor);
+        borderCmd.layer = layer + 1;  // Render border on top of the texture
+        borderCmd.lineWidth = 1.0f;
+        borderCmd.filled = false;
+        
+        renderContext->graphicQueue.push_back(borderCmd);
+    }
 }
 
 void ViewportElement::handleEvent(const SDL_Event& event) {
