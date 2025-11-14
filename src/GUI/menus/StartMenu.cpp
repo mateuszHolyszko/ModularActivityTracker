@@ -96,6 +96,21 @@ void StartMenu::init() {
     exitButton->setOnPress([this]() { onExit(); });
     addElement(std::move(exitButton));
 
+    const Box& boxTestSelect = layout.at("Button5");
+    // New: Test Select Input button 
+    auto testSelectButton = std::make_unique<Button>(
+        renderContext,
+        boxTestSelect.x, boxTestSelect.y + boxTestSelect.height, boxTestSelect.width, boxTestSelect.height,
+        "Test Select Input",
+        true,  // Show border
+        24,    // Medium font
+        2      // Layer
+    );
+    testSelectButton->setId("test_select_button");
+    // Connect button callback
+    testSelectButton->setOnPress([this]() { onTestSelectInput(); });
+    addElement(std::move(testSelectButton));
+
     // Set focus to the first interactive element (Start button)
     BaseElement* firstButton = getElement("start_button");
     if (firstButton) {
@@ -185,9 +200,32 @@ void StartMenu::onViewHistory() {
     std::cout << "Opened keyboard menu" << std::endl;
 }
 
+void StartMenu::onTestSelectInput() {
+    std::vector<std::string> testOptions = {"Option A", "Option B", "Option C", "Option E","Option G","Option F","Option H","Option Y"};  // Sample options
+    
+    auto selectMenu = std::make_unique<SelectInputMenu>(
+        renderContext, 
+        worker, 
+        this,                    // returnMenu
+        getCurrentFocus(),       // returnFocus  
+        &selectText,             // pointer to output string
+        testOptions              // vector of options
+    );
+    selectMenu->init();
+    
+    // Set it as current menu in the context
+    renderContext->setCurrentMenu(selectMenu.get());
+    
+    // Store the select menu pointer so it doesn't get destroyed
+    this->selectMenu = std::move(selectMenu);
+    
+    std::cout << "Opened select input menu" << std::endl;
+}
+
 void StartMenu::onSettings() {
     std::cout << "StartMenu: Opening settings..." << std::endl;
-    renderContext->addNotification("Input: " + inputText);
+    renderContext->addNotification("Keyboard Input: " + inputText);
+    renderContext->addNotification("Select Input: " + selectText);
 }
 
 void StartMenu::onExit() {

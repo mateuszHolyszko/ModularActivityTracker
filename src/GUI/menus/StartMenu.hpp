@@ -7,11 +7,14 @@
 #include "../elements/ViewportElement.hpp"
 #include "../WorkThread.hpp"  
 #include "InputMenus/InputKeyboardMenu.hpp"
+#include "InputMenus/SelectInputMenu.hpp"
 
 class StartMenu : public Menu {
 private:
     std::unique_ptr<InputKeyboardMenu> keyboardMenu; 
+    std::unique_ptr<SelectInputMenu> selectMenu; 
     std::string inputText = ""; // Text that will hold keyboard input
+    std::string selectText; // New for select input
 public:
     StartMenu(RenderContext* context, WorkThread* workThread);
     void init() override;
@@ -21,6 +24,7 @@ private:
     void onViewHistory();
     void onSettings();
     void onExit();
+    void onTestSelectInput();
 };
 
 #endif
