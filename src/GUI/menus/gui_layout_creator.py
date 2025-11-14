@@ -29,6 +29,9 @@ class BoxDesigner:
         self.current_rect = None
         self.size_text_id = None
 
+        self.resizing_box = None
+        self.resize_corner = None
+
         # For moving existing boxes
         self.dragging_box = None
         self.drag_offset_x = 0

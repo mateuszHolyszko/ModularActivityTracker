@@ -110,6 +110,9 @@ int main(int argc, char* argv[]) {
     StartMenu startMenu(&ctx, &worker);
     startMenu.init();
 
+    // Set the start menu as current menu in the context
+    ctx.setCurrentMenu(&startMenu);
+
     bool running = true;
     SDL_Event e;
     
@@ -132,7 +135,7 @@ int main(int argc, char* argv[]) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) running = false;
             if (!worker.isRunning()) {
-                startMenu.handleEvent(e);
+                ctx.currentMenu->handleEvent(e);
             }
         }
 
@@ -156,8 +159,10 @@ int main(int argc, char* argv[]) {
             worker.reset();
         }
 
-        // Update menu (for animations, etc.) with proper delta time
-        startMenu.update(dt);
+        // Update current menu (for animations, etc.) with proper delta time
+        if (ctx.currentMenu) {
+            ctx.currentMenu->update(dt);
+        }
 
         // Clear OpenGL framebuffer
         glClearColor(style.bg_color.r / 255.0f,
@@ -166,8 +171,10 @@ int main(int argc, char* argv[]) {
                     1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Render menu - this collects render commands from UI elements
-        startMenu.render();
+        // Render current menu from context - this collects render commands from UI elements
+        if (ctx.currentMenu) {
+            ctx.currentMenu->render();
+        }
 
         // Render notifications (this adds notification commands to the queues)
         if (ctx.notificationSystem) {

@@ -8,6 +8,7 @@
 // Forward declarations
 class SimpleRenderer;
 class NotificationSystem;
+class Menu;  // Add forward declaration for Menu
 
 // ==============================
 // Command structures
@@ -43,6 +44,7 @@ struct RenderContext {
 
     SimpleRenderer* renderer = nullptr;
     NotificationSystem* notificationSystem = nullptr;  // Notification system reference
+    Menu* currentMenu = nullptr;  // Add current menu pointer
 
     void clearQueues() {
         textQueue.clear();
@@ -53,4 +55,8 @@ struct RenderContext {
     
     // Forward declaration only - implementation in .cpp
     void addNotification(const std::string& text);
+    
+    // Menu management
+    void setCurrentMenu(Menu* menu) { currentMenu = menu; }
+    Menu* getCurrentMenu() const { return currentMenu; }
 };

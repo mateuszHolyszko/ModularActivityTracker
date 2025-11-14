@@ -91,6 +91,23 @@ public:
         return getAbsolutePosition().second;
     }
 
+    // Absolute bounding box methods
+    virtual int getAbsoluteMinX() const {
+        return getAbsoluteX();
+    }
+    
+    virtual int getAbsoluteMaxX() const {
+        return getAbsoluteX() + width;
+    }
+    
+    virtual int getAbsoluteMinY() const {
+        return getAbsoluteY();
+    }
+    
+    virtual int getAbsoluteMaxY() const {
+        return getAbsoluteY() + height;
+    }
+
     // Core virtual methods
     virtual void render() = 0;
     virtual void handleEvent(const SDL_Event& event) = 0;

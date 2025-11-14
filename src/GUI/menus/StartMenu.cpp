@@ -163,13 +163,31 @@ void StartMenu::onStartGame() {
 }
 
 void StartMenu::onViewHistory() {
-    std::cout << "StartMenu: Opening history..." << std::endl;
-    renderContext->addNotification("Test1");
+    //std::string inputText = "";  // Your string to store input
+    
+    auto keyboardMenu = std::make_unique<InputKeyboardMenu>(
+        renderContext, 
+        worker, 
+        this,                    // returnMenu
+        getCurrentFocus(),       // returnFocus  
+        &inputText               // pointer to your output string
+    );
+    keyboardMenu->init();
+    
+    // Set it as current menu in the context
+    renderContext->setCurrentMenu(keyboardMenu.get());
+    
+    // Store the keyboard menu pointer so it doesn't get destroyed
+    // You'll need to add this to your StartMenu class:
+    // std::unique_ptr<InputKeyboardMenu> keyboardMenu;
+    this->keyboardMenu = std::move(keyboardMenu);
+    
+    std::cout << "Opened keyboard menu" << std::endl;
 }
 
 void StartMenu::onSettings() {
     std::cout << "StartMenu: Opening settings..." << std::endl;
-    renderContext->addNotification("Test2");
+    renderContext->addNotification("Input: " + inputText);
 }
 
 void StartMenu::onExit() {

@@ -22,6 +22,7 @@
                 "src/GUI/3D/Model3D.cpp",
                 "src/GUI/3D/ShaderProgram.cpp",
                 "src/GUI/NotificationSystem.cpp",
+                "src/GUI/menus/InputMenus/InputKeyboardMenu.cpp",
                 "src/database/DatabaseManager.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",
