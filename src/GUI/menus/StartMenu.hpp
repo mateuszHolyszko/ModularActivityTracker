@@ -4,6 +4,8 @@
 #include "../Menu.hpp"
 #include "../elements/Button.hpp"
 #include "../elements/Label.hpp"
+#include "../elements/DropDown.hpp"
+#include "../elements/NumericInput.hpp"
 #include "../elements/ViewportElement.hpp"
 #include "../WorkThread.hpp"  
 #include "InputMenus/InputKeyboardMenu.hpp"

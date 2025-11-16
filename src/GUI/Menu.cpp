@@ -35,33 +35,45 @@ void Menu::render() {
 }
 
 void Menu::handleEvent(const SDL_Event& event) {
-    // Handle arrow key navigation
-    if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-            case SDLK_UP:
-                navigate_arrows(0, -1);  // Up
-                break;
-            case SDLK_DOWN:
-                navigate_arrows(0, 1);   // Down
-                break;
-            case SDLK_LEFT:
-                navigate_arrows(-1, 0);  // Left
-                break;
-            case SDLK_RIGHT:
-                navigate_arrows(1, 0);   // Right
-                break;
-        }
-    }
+    bool eventConsumed = false;
     
     // Let the focused element handle the event first
     if (current_focus && current_focus->isEnabled() && current_focus->isVisible()) {
-        current_focus->handleEvent(event);
+        eventConsumed = current_focus->handleEvent(event);
     }
     
-    // Also pass events to all elements (for hover effects, etc.)
-    for (auto& element : guiElements) {
-        if (element->isEnabled() && element->isVisible() && element.get() != current_focus) {
-            element->handleEvent(event);
+    // If the focused element didn't consume the event, also pass to other elements
+    // (for hover effects, etc.) but don't let them consume navigation keys
+    if (!eventConsumed) {
+        for (auto& element : guiElements) {
+            if (element->isEnabled() && element->isVisible() && element.get() != current_focus) {
+                // For non-focused elements, only let them handle non-navigation events
+                if (event.type != SDL_KEYDOWN || 
+                    (event.key.keysym.sym != SDLK_UP && 
+                     event.key.keysym.sym != SDLK_DOWN &&
+                     event.key.keysym.sym != SDLK_LEFT &&
+                     event.key.keysym.sym != SDLK_RIGHT)) {
+                    element->handleEvent(event);
+                }
+            }
+        }
+        
+        // Handle arrow key navigation only if event wasn't consumed
+        if (event.type == SDL_KEYDOWN && !eventConsumed) {
+            switch (event.key.keysym.sym) {
+                case SDLK_UP:
+                    navigate_arrows(0, -1);  // Up
+                    break;
+                case SDLK_DOWN:
+                    navigate_arrows(0, 1);   // Down
+                    break;
+                case SDLK_LEFT:
+                    navigate_arrows(-1, 0);  // Left
+                    break;
+                case SDLK_RIGHT:
+                    navigate_arrows(1, 0);   // Right
+                    break;
+            }
         }
     }
 }
@@ -195,6 +207,9 @@ void Menu::clearFocus() {
 }
 
 void Menu::addElement(std::unique_ptr<BaseElement> element) {
+    // Set this menu as the element's parent before adding it
+    element->setParent(this);
+    
     guiElements.push_back(std::move(element));
     
     // Auto-focus first selectable element if no focus is set

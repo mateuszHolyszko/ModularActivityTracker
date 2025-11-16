@@ -24,6 +24,8 @@
                 "src/GUI/NotificationSystem.cpp",
                 "src/GUI/menus/InputMenus/InputKeyboardMenu.cpp",
                 "src/GUI/menus/InputMenus/SelectInputMenu.cpp",
+                "src/GUI/elements/DropDown.cpp",
+                "src/GUI/elements/NumericInput.cpp",
                 "src/database/DatabaseManager.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",

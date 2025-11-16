@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "../3D/ShaderProgram.hpp"
  
-ViewportElement::ViewportElement(RenderContext* ctx, int x_, int y_, int w_, int h_, int layer, BaseElement* parent, bool showBorder_)
+ViewportElement::ViewportElement(RenderContext* ctx, int x_, int y_, int w_, int h_, int layer, Menu* parent, bool showBorder_)
     : BaseElement(ctx, x_, y_, w_, h_, false, layer, parent), texW(w_), texH(h_), showBorder(showBorder_) {
     renderContext = ctx;
     if (!createFBO(texW, texH)) {
@@ -214,8 +214,9 @@ void ViewportElement::render() {
     }
 }
 
-void ViewportElement::handleEvent(const SDL_Event& event) {
+bool ViewportElement::handleEvent(const SDL_Event& event) {
     (void)event; // Suppress unused parameter warning
+    return false; // Viewport doesn't consume navigation events
 }
 
 void ViewportElement::resize(int w, int h) {

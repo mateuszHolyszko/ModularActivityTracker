@@ -8,7 +8,7 @@ Label::Label(RenderContext* context,
              bool showBorder,
              int fontSize,
              int layer,
-             BaseElement* parent,
+             Menu* parent,
              HorizontalAlignment textAlign)
     : BaseElement(context, x, y, width, height, false, layer, parent),  // false for unselectable
       text(text), showBorder(showBorder), fontSize(fontSize),
@@ -91,8 +91,10 @@ void Label::render() {
     }
 }
 
-void Label::handleEvent(const SDL_Event& event) {
-    if (!visible) return;  // No check for enabled since it's unselectable, but still handle hover
+bool Label::handleEvent(const SDL_Event& event) {
+    if (!visible) return false;  // No check for enabled since it's unselectable, but still handle hover
+
+    bool eventConsumed = false;
 
     switch (event.type) {
         case SDL_MOUSEMOTION: {
@@ -108,6 +110,8 @@ void Label::handleEvent(const SDL_Event& event) {
         }
         // No handling for SDL_MOUSEBUTTONDOWN or SDL_KEYDOWN (no press functionality)
     }
+
+    return eventConsumed; // Labels don't consume events
 }
 
 void Label::setText(const std::string& newText) {

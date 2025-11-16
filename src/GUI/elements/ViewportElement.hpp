@@ -8,11 +8,11 @@
 
 class ViewportElement : public BaseElement {
 public:
-    ViewportElement(RenderContext* ctx, int x, int y, int w, int h, int layer = 0, BaseElement* parent = nullptr, bool showBorder = true);
+    ViewportElement(RenderContext* ctx, int x, int y, int w, int h, int layer = 0, Menu* parent = nullptr, bool showBorder = true);
     ~ViewportElement();
 
     void render() override;
-    void handleEvent(const SDL_Event& event) override;
+    bool handleEvent(const SDL_Event& event) override;
     void update(float dt) override;
 
     // Render 3D content into the internal texture

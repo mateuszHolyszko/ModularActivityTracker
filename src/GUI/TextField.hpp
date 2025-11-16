@@ -25,6 +25,7 @@ public:
     void setPosition(float x, float y) { x_ = x; y_ = y; }
     void setSize(float width, float height) { width_ = width; height_ = height; }
     void setWrap(bool wrap) { wrap_ = wrap; }
+    void setFontSize(float font_size) { font_size_ = font_size; }
 
 private:
     RenderContext* context_;  // Reference to RenderContext for text measurement

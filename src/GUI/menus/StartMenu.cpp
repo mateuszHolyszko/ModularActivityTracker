@@ -39,7 +39,7 @@ void StartMenu::init() {
         "Start New Session",
         true,  // Show border
         24,    // Medium font
-        2,      // Layer
+        1,      // Layer
         nullptr, // parent
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
@@ -56,7 +56,7 @@ void StartMenu::init() {
         "View History testtesttesttesttesttesttesttesttest",
         true,  // Show border
         24,    // Medium font
-        2,     // Layer
+        1,     // Layer
         nullptr, // parent
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
@@ -74,7 +74,7 @@ void StartMenu::init() {
         "Settings",
         true,  // Show border
         24,    // Medium font
-        2      // Layer
+        1      // Layer
     );
     settingsButton->setId("settings_button");
     // Connect button callback
@@ -89,7 +89,7 @@ void StartMenu::init() {
         "Exit",
         true,  // Show border
         24,    // Medium font
-        2      // Layer
+        1      // Layer
     );
     exitButton->setId("exit_button");
     // Connect button callback
@@ -104,12 +104,56 @@ void StartMenu::init() {
         "Test Select Input",
         true,  // Show border
         24,    // Medium font
-        2      // Layer
+        1      // Layer
     );
     testSelectButton->setId("test_select_button");
     // Connect button callback
     testSelectButton->setOnPress([this]() { onTestSelectInput(); });
     addElement(std::move(testSelectButton));
+
+    // DropDown example element
+    const Box& boxDropDown = layout.at("DropDown");
+    std::vector<std::string> dropdownOptions = {"TESAT", "OPTION@", "ANOTHER OPtion", "LONG OPTION TEXT EXAMPLE", "OPTION 4"};
+    auto exampleDropDown = std::make_unique<DropDown>(
+        renderContext,
+        boxDropDown.x, boxDropDown.y, boxDropDown.width, boxDropDown.height,
+        "Select Option",  // Initial text
+        true,             // Show border
+        24,               // Font size
+        3,                // Layer
+        nullptr,          // Parent
+        CENTER           // Text alignment
+    );
+    exampleDropDown->setId("example_dropdown");
+    exampleDropDown->setOptions(dropdownOptions);  // Set options after construction
+    exampleDropDown->setDropDownDirection(0); // 0=down, 1=up
+
+    // Optional: Adjust dropdown height based on number of options
+    exampleDropDown->setDropDownHeight(static_cast<int>(dropdownOptions.size()) * 30); // 30px per option
+
+    addElement(std::move(exampleDropDown));
+
+    // NumericInput example element
+    const Box& boxNumeric = layout.at("NumericInput");
+    auto exampleNumeric = std::make_unique<NumericInput>(
+        renderContext,
+        boxNumeric.x, boxNumeric.y, boxNumeric.width, boxNumeric.height,
+        "Volume",           // Prompt text
+        75.0f,              // Initial value
+        0.0f,               // Minimum value
+        100.0f,             // Maximum value
+        5.0f,               // Step value (increment/decrement by 5)
+        true,               // Show border
+        30,                 // Font size
+        1,                  // Layer
+        nullptr,            // Parent (will be set by Menu)
+        LEFT,               // Prompt text alignment (LEFT, CENTER, RIGHT)
+        LEFT               // Value text alignment (LEFT, CENTER, RIGHT)
+    );
+    exampleNumeric->setId("volume_input");
+
+    // Add to menu
+    addElement(std::move(exampleNumeric));
 
     // Set focus to the first interactive element (Start button)
     BaseElement* firstButton = getElement("start_button");

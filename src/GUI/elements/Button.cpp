@@ -8,7 +8,7 @@ Button::Button(RenderContext* context,
              bool showBorder,
              int fontSize,
              int layer, 
-             BaseElement* parent,
+             Menu* parent,
              HorizontalAlignment textAlign)  // Add alignment parameter
     : BaseElement(context, x, y, width, height, true, layer, parent),
       text(text), showBorder(showBorder), fontSize(fontSize), 
@@ -89,14 +89,16 @@ void Button::render() {
     }
 
     // Draw text using TextField
-    auto textCommands = textField->render(layer + 2);
+    auto textCommands = textField->render(layer+1);
     for (const auto& textCmd : textCommands) {
         renderContext->textQueue.push_back(textCmd);
     }
 }
 
-void Button::handleEvent(const SDL_Event& event) {
-    if (!enabled || !visible) return;
+bool Button::handleEvent(const SDL_Event& event) {
+    if (!enabled || !visible) return false;
+
+    bool eventConsumed = false;
 
     switch (event.type) {
         case SDL_MOUSEMOTION: {
@@ -118,16 +120,23 @@ void Button::handleEvent(const SDL_Event& event) {
             
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT && containsPoint(event.button.x, event.button.y)) {
-                onPress();
+                // Instead of calling onPress, request focus from parent menu
+                if (parent && selectable) {
+                    parent->setFocus(this);
+                    eventConsumed = true; // Mouse click is consumed
+                }
             }
             break;
 
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_RETURN && is_selected) {
                 onPress();
+                eventConsumed = true; // Enter key is consumed
             }
             break;
     }
+
+    return eventConsumed;
 }
 
 void Button::onPress() {

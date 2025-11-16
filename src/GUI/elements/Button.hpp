@@ -5,6 +5,7 @@
 #include "../../Style.hpp"
 #include "../../RenderContext.hpp"
 #include "../TextField.hpp"
+#include "../Menu.hpp"
 #include <functional>
 
 class Button : public BaseElement {
@@ -24,13 +25,13 @@ public:
            bool showBorder = false,
            int fontSize = 16,
            int layer = 0, 
-           BaseElement* parent = nullptr,
+           Menu* parent = nullptr,
            HorizontalAlignment textAlign = LEFT);
     
     ~Button();  // Add destructor to clean up TextField
     
     void render() override;
-    void handleEvent(const SDL_Event& event) override;
+    bool handleEvent(const SDL_Event& event) override;
     
     // Text management
     void setText(const std::string& newText);

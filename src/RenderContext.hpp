@@ -23,7 +23,7 @@ struct TextCommand {
 };
 
 struct GraphicCommand {
-    enum Type { LINE, BOX, CIRCLE, TEXTURE };
+    enum Type { LINE, BOX, CIRCLE, TEXTURE, ARROW };
     Type type;
     float x1, y1, x2, y2;
     glm::vec4 color;
@@ -33,6 +33,9 @@ struct GraphicCommand {
     
     GLuint textureId = 0;
     float u1 = 0.0f, v1 = 0.0f, u2 = 1.0f, v2 = 1.0f;
+
+    // Add direction field for ARROW type (0=up, 1=right, 2=down, 3=left)
+    int direction = 0;
 };
 
 // ==============================

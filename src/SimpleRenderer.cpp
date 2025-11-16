@@ -174,6 +174,54 @@ void SimpleRenderer::renderToTexture(std::vector<TextCommand>& textCommands, std
                     nvgStroke(vg);
                 }
             }
+            else if (graphicCmd.type == GraphicCommand::ARROW) {
+                // Direct arrow rendering without helper function
+                nvgBeginPath(vg);
+                
+                // Use x1, y1 as center position, x2 as size, and direction from the command
+                float x = graphicCmd.x1;
+                float y = graphicCmd.y1;
+                float size = graphicCmd.x2;
+                int direction = graphicCmd.direction;
+                
+                // Define arrow points based on direction
+                // Directions: 0=up, 1=right, 2=down, 3=left
+                switch (direction) {
+                    case 0: // Up
+                        nvgMoveTo(vg, x, y - size/2);
+                        nvgLineTo(vg, x - size/2, y + size/2);
+                        nvgLineTo(vg, x + size/2, y + size/2);
+                        break;
+                    case 1: // Right
+                        nvgMoveTo(vg, x + size/2, y);
+                        nvgLineTo(vg, x - size/2, y - size/2);
+                        nvgLineTo(vg, x - size/2, y + size/2);
+                        break;
+                    case 2: // Down
+                        nvgMoveTo(vg, x, y + size/2);
+                        nvgLineTo(vg, x - size/2, y - size/2);
+                        nvgLineTo(vg, x + size/2, y - size/2);
+                        break;
+                    case 3: // Left
+                        nvgMoveTo(vg, x - size/2, y);
+                        nvgLineTo(vg, x + size/2, y - size/2);
+                        nvgLineTo(vg, x + size/2, y + size/2);
+                        break;
+                    default: // Default to up arrow
+                        nvgMoveTo(vg, x, y - size/2);
+                        nvgLineTo(vg, x - size/2, y + size/2);
+                        nvgLineTo(vg, x + size/2, y + size/2);
+                        break;
+                }
+                
+                nvgClosePath(vg);
+                
+                if (graphicCmd.filled) {
+                    nvgFill(vg);
+                } else {
+                    nvgStroke(vg);
+                }
+            }
             else if (graphicCmd.type == GraphicCommand::TEXTURE) {
                 // Draw textured quad into the UI FBO
                 GLuint tex = graphicCmd.textureId;

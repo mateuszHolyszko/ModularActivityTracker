@@ -3,7 +3,7 @@
 
 BaseElement::BaseElement(RenderContext* context,
                        int x, int y, int width, int height, 
-                       bool selectable, int layer, BaseElement* parent)
+                       bool selectable, int layer, Menu* parent)
     : renderContext(context),
       x(x), y(y), width(width), height(height), 
       selectable(selectable), visible(true), enabled(true),

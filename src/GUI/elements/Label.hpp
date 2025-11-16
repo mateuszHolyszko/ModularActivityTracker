@@ -16,13 +16,13 @@ public:
           bool showBorder = false,
           int fontSize = 12,
           int layer = 0,
-          BaseElement* parent = nullptr,
+          Menu* parent = nullptr,
           HorizontalAlignment textAlign = HorizontalAlignment::LEFT);
 
     ~Label();
 
     void render() override;
-    void handleEvent(const SDL_Event& event) override;
+    bool handleEvent(const SDL_Event& event) override;
 
     void setText(const std::string& newText);
     void setFontSize(int size);

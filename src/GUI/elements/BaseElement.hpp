@@ -10,6 +10,7 @@
 class TextRenderer;
 class SimplesRenderer;
 class RenderContext;
+class Menu;
 
 class BaseElement {
 protected:
@@ -21,13 +22,13 @@ protected:
     bool enabled;
     bool is_selected;
     int layer;
-    BaseElement* parent;
+    Menu* parent;
     std::string id;
 
 public:
     BaseElement(RenderContext* context,
                 int x, int y, int width, int height, 
-                bool selectable = true, int layer = 0, BaseElement* parent = nullptr);
+                bool selectable = true, int layer = 0, Menu* parent = nullptr);
     virtual ~BaseElement() = default;
 
     // Getters and setters
@@ -40,7 +41,7 @@ public:
     virtual bool isEnabled() const { return enabled; }
     virtual bool isSelected() const { return is_selected; }
     virtual int getLayer() const { return layer; }
-    virtual BaseElement* getParent() const { return parent; }
+    virtual Menu* getParent() const { return parent; }
     virtual const std::string& getId() const { return id; }
     
     virtual void setPosition(int newX, int newY) { x = newX; y = newY; }
@@ -49,7 +50,7 @@ public:
     virtual void setEnabled(bool isEnabled) { enabled = isEnabled; }
     virtual void setSelected(bool selected) { is_selected = selected; }
     virtual void setLayer(int newLayer) { layer = newLayer; }
-    virtual void setParent(BaseElement* newParent) { parent = newParent; }
+    virtual void setParent(Menu* newParent) { parent = newParent; }
     virtual void setId(const std::string& newId) { id = newId; }
 
     // Center coordinates method (relative to parent)
@@ -76,11 +77,7 @@ public:
 
     // Absolute position methods
     virtual std::pair<int, int> getAbsolutePosition() const {
-        if (parent) {
-            auto parentAbs = parent->getAbsolutePosition();
-            return {parentAbs.first + x, parentAbs.second + y};
-        }
-        return {x, y};
+        return {x, y}; // For now, no parent offset since im workin on absolute coords
     }
     
     virtual int getAbsoluteX() const {
@@ -110,7 +107,7 @@ public:
 
     // Core virtual methods
     virtual void render() = 0;
-    virtual void handleEvent(const SDL_Event& event) = 0;
+    virtual bool handleEvent(const SDL_Event& event) = 0;
 
     // Optional virtual methods
     virtual void update(float deltaTime) {}
