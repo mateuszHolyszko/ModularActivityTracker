@@ -26,6 +26,7 @@
                 "src/GUI/menus/InputMenus/SelectInputMenu.cpp",
                 "src/GUI/elements/DropDown.cpp",
                 "src/GUI/elements/NumericInput.cpp",
+                "src/GUI/panels/ClockPanel.cpp",
                 "src/database/DatabaseManager.cpp",
                 "external/nanovg/src/nanovg.c",
                 "-o",

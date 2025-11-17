@@ -48,6 +48,7 @@ public:
 private:
     // Arrow navigation helper method
     void navigate_arrows(int dirX, int dirY);
+    double navigationConeAngleDegrees = 60.0;
 };
 
 #endif

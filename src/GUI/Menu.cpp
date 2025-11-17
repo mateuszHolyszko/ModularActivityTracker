@@ -78,92 +78,151 @@ void Menu::handleEvent(const SDL_Event& event) {
     }
 }
 
+// Helper function for ray-AABB intersection
+// Returns the distance along the ray to the intersection, or -1 if no intersection
+double rayIntersectsBox(double rayOriginX, double rayOriginY, double rayDirX, double rayDirY,
+                        double boxMinX, double boxMaxX, double boxMinY, double boxMaxY) {
+    double tMin = -std::numeric_limits<double>::infinity();
+    double tMax = std::numeric_limits<double>::infinity();
+    
+    // Check X-axis
+    if (rayDirX != 0.0) {
+        double t1 = (boxMinX - rayOriginX) / rayDirX;
+        double t2 = (boxMaxX - rayOriginX) / rayDirX;
+        tMin = std::max(tMin, std::min(t1, t2));
+        tMax = std::min(tMax, std::max(t1, t2));
+    } else if (rayOriginX < boxMinX || rayOriginX > boxMaxX) {
+        return -1.0;  // Ray parallel to X and outside box
+    }
+    
+    // Check Y-axis
+    if (rayDirY != 0.0) {
+        double t1 = (boxMinY - rayOriginY) / rayDirY;
+        double t2 = (boxMaxY - rayOriginY) / rayDirY;
+        tMin = std::max(tMin, std::min(t1, t2));
+        tMax = std::min(tMax, std::max(t1, t2));
+    } else if (rayOriginY < boxMinY || rayOriginY > boxMaxY) {
+        return -1.0;  // Ray parallel to Y and outside box
+    }
+    
+    if (tMax >= tMin && tMax >= 0.0) {
+        return tMin >= 0.0 ? tMin : tMax;  // Return the entry distance
+    }
+    return -1.0;  // No intersection
+}
+
 void Menu::navigate_arrows(int dirX, int dirY) {
     if (!current_focus) return;
     
-    // Get current focus absolute center
+    // Define the navigation direction as a unit vector
+    double navDirX = dirX;  // 1 for right, -1 for left, 0 otherwise
+    double navDirY = dirY;  // 1 for down, -1 for up, 0 otherwise
+    
+    // Get current focus center and dimensions
     auto [currentX, currentY] = current_focus->getAbsoluteCenter();
+    double width = current_focus->getWidth();
+    double height = current_focus->getHeight();
     
     BaseElement* bestCandidate = nullptr;
-    double bestDistance = std::numeric_limits<double>::max();
     
-    // First pass: Strict ray intersection
-    for (auto& element : guiElements) {
-        if (!element->isSelectable() || !element->isEnabled() || !element->isVisible()) continue;
-        if (element.get() == current_focus) continue; // Skip current focus
-        
-        auto minX = element->getAbsoluteMinX();
-        auto maxX = element->getAbsoluteMaxX();
-        auto minY = element->getAbsoluteMinY();
-        auto maxY = element->getAbsoluteMaxY();
-        
-        bool intersects = false;
-        double distance = 0.0;
-        
-        if (dirX > 0) { // Right arrow: horizontal ray to the right from (currentX, currentY)
-            if (minY <= currentY && currentY <= maxY && maxX > currentX) {
-                intersects = true;
-                distance = minX - currentX; // Distance to the left edge of the box
+    // Primary: Perform 3 ray casts
+    double bestRayDistance = std::numeric_limits<double>::max();
+    BaseElement* rayCandidate = nullptr;
+    
+    // Define the 3 ray origins based on direction
+    std::vector<std::pair<double, double>> rayOrigins;
+    if (dirX != 0) {  // Horizontal direction: rays from center, top, and bottom of the edge
+        double edgeX = (dirX > 0) ? (currentX + width / 2.0) : (currentX - width / 2.0);
+        rayOrigins = {
+            {currentX, currentY},  // Center
+            {edgeX, currentY - height / 2.0},  // Top edge
+            {edgeX, currentY + height / 2.0}   // Bottom edge
+        };
+    } else if (dirY != 0) {  // Vertical direction: rays from center, left, and right of the edge
+        double edgeY = (dirY > 0) ? (currentY + height / 2.0) : (currentY - height / 2.0);
+        rayOrigins = {
+            {currentX, currentY},  // Center
+            {currentX - width / 2.0, edgeY},  // Left edge
+            {currentX + width / 2.0, edgeY}   // Right edge
+        };
+    }
+    
+    // Perform ray casts for each origin
+    for (auto& [rayOriginX, rayOriginY] : rayOrigins) {
+        for (auto& element : guiElements) {
+            if (!element->isSelectable() || !element->isEnabled() || !element->isVisible()) continue;
+            if (element.get() == current_focus) continue;
+            
+            // Get bounding box
+            double minX = element->getAbsoluteMinX();
+            double maxX = element->getAbsoluteMaxX();
+            double minY = element->getAbsoluteMinY();
+            double maxY = element->getAbsoluteMaxY();
+            
+            // Check ray intersection
+            double distance = rayIntersectsBox(rayOriginX, rayOriginY, navDirX, navDirY, minX, maxX, minY, maxY);
+            if (distance >= 0.0 && distance < bestRayDistance) {
+                bestRayDistance = distance;
+                rayCandidate = element.get();
             }
-        } else if (dirX < 0) { // Left arrow: horizontal ray to the left from (currentX, currentY)
-            if (minY <= currentY && currentY <= maxY && minX < currentX) {
-                intersects = true;
-                distance = currentX - maxX; // Distance to the right edge of the box
-            }
-        } else if (dirY > 0) { // Down arrow: vertical ray downward from (currentX, currentY)
-            if (minX <= currentX && currentX <= maxX && maxY > currentY) {
-                intersects = true;
-                distance = minY - currentY; // Distance to the top edge of the box
-            }
-        } else if (dirY < 0) { // Up arrow: vertical ray upward from (currentX, currentY)
-            if (minX <= currentX && currentX <= maxX && minY < currentY) {
-                intersects = true;
-                distance = currentY - maxY; // Distance to the bottom edge of the box
-            }
-        }
-        
-        // If the ray intersects the box, check if it's the closest
-        if (intersects && distance < bestDistance) {
-            bestDistance = distance;
-            bestCandidate = element.get();
         }
     }
     
-    // If no candidate found in strict ray, do second pass with wider cone (90-degree cone)
+    bestCandidate = rayCandidate;
+    
+    // Fallback: If no candidate found via rays, use angle-constrained nearest neighbor
     if (!bestCandidate) {
-        bestDistance = std::numeric_limits<double>::max();
+        // Compute starting point based on direction (from the relevant edge)
+        double startX = currentX;
+        double startY = currentY;
+        if (dirX > 0) {  // RIGHT: start from right edge
+            startX = currentX + width / 2.0;
+        } else if (dirX < 0) {  // LEFT: start from left edge
+            startX = currentX - width / 2.0;
+        }
+        if (dirY > 0) {  // DOWN: start from bottom edge
+            startY = currentY + height / 2.0;
+        } else if (dirY < 0) {  // UP: start from top edge
+            startY = currentY - height / 2.0;
+        }
+        
+        double bestDistance = std::numeric_limits<double>::max();
+        double bestAngleDeviation = std::numeric_limits<double>::max();  // For tie-breaking
+        
+        // Iterate through all elements to find candidates (angle-constrained nearest neighbor)
         for (auto& element : guiElements) {
             if (!element->isSelectable() || !element->isEnabled() || !element->isVisible()) continue;
-            if (element.get() == current_focus) continue; // Skip current focus
+            if (element.get() == current_focus) continue;  // Skip current focus
             
-            auto [elementX, elementY] = element->getAbsoluteCenter();
+            // Get candidate center
+            auto [candX, candY] = element->getAbsoluteCenter();
             
-            // Calculate direction vector from current focus to candidate
-            int deltaX = elementX - currentX;
-            int deltaY = elementY - currentY;
+            // Vector from starting point to candidate center
+            double deltaX = candX - startX;
+            double deltaY = candY - startY;
             
-            // Skip if element is in the wrong direction (90-degree cone check)
-            if (dirX != 0) {
-                // Horizontal navigation - check if element is in the horizontal cone
-                if (std::abs(deltaY) > std::abs(deltaX)) continue; // Too vertical
-                if (dirX > 0 && deltaX <= 0) continue; // Right arrow but element is left
-                if (dirX < 0 && deltaX >= 0) continue; // Left arrow but element is right
-            }
+            // Compute squared distance (for performance, avoid sqrt)
+            double distanceSq = deltaX * deltaX + deltaY * deltaY;
+            if (distanceSq == 0.0) continue;  // Skip if exactly at the same position
             
-            if (dirY != 0) {
-                // Vertical navigation - check if element is in the vertical cone
-                if (std::abs(deltaX) > std::abs(deltaY)) continue; // Too horizontal
-                if (dirY > 0 && deltaY <= 0) continue; // Down arrow but element is up
-                if (dirY < 0 && deltaY >= 0) continue; // Up arrow but element is down
-            }
+            // Compute angle between navigation direction and candidate vector
+            double dotProduct = navDirX * deltaX + navDirY * deltaY;
+            double magCand = std::sqrt(distanceSq);  // Magnitude of candidate vector
+            double cosAngle = dotProduct / magCand;  // Since navDir is unit-length
             
-            // Calculate distance (squared for performance, no need for sqrt)
-            double distance = deltaX * deltaX + deltaY * deltaY;
+            // Convert to degrees for threshold check
+            double angleDegrees = std::acos(std::clamp(cosAngle, -1.0, 1.0)) * 180.0 / 3.1415;
             
-            // Find the closest element in the cone
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                bestCandidate = element.get();
+            // Check if within the cone (angle <= threshold)
+            if (angleDegrees <= navigationConeAngleDegrees) {
+                // This candidate is in the acceptable direction
+                // Prefer the closest one; if tied, prefer the one with smallest angle deviation
+                if (distanceSq < bestDistance || 
+                    (distanceSq == bestDistance && angleDegrees < bestAngleDeviation)) {
+                    bestDistance = distanceSq;
+                    bestAngleDeviation = angleDegrees;
+                    bestCandidate = element.get();
+                }
             }
         }
     }
@@ -174,12 +233,12 @@ void Menu::navigate_arrows(int dirX, int dirY) {
     }
 }
 
-
 void Menu::update(float deltaTime) {
     // Update all elements
     for (auto& element : guiElements) {
         if (element->isEnabled() && element->isVisible()) {
-            element->update(deltaTime);
+            element->update(deltaTime);   // virtual update method
+            element->onUpdate(deltaTime); // lambda assigned to specific instance
         }
     }
 }
@@ -209,7 +268,7 @@ void Menu::clearFocus() {
 void Menu::addElement(std::unique_ptr<BaseElement> element) {
     // Set this menu as the element's parent before adding it
     element->setParent(this);
-    
+
     guiElements.push_back(std::move(element));
     
     // Auto-focus first selectable element if no focus is set

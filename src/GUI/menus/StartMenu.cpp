@@ -7,6 +7,7 @@
 #include "../NotificationSystem.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "../panels/ClockPanel.hpp"
 #include "StartMenu_layout.hpp"
 
 StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
@@ -14,6 +15,9 @@ StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
 }
 
 void StartMenu::init() {
+    // Add ClockPanel (group of elements)
+    auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
+    for (auto& element : clockPanel) addElement(std::move(element));
 
     // Load box from layout (x,y,width,height)
     const Box& boxLabel = layout.at("Label");  // get box by name
@@ -29,6 +33,7 @@ void StartMenu::init() {
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     titleLabel->setId("title_label");
+    titleLabel->setWrapText(false);
     addElement(std::move(titleLabel));
 
     const Box& boxButton1 = layout.at("Button1");
@@ -100,7 +105,7 @@ void StartMenu::init() {
     // New: Test Select Input button 
     auto testSelectButton = std::make_unique<Button>(
         renderContext,
-        boxTestSelect.x, boxTestSelect.y + boxTestSelect.height, boxTestSelect.width, boxTestSelect.height,
+        boxTestSelect.x, boxTestSelect.y, boxTestSelect.width, boxTestSelect.height,
         "Test Select Input",
         true,  // Show border
         24,    // Medium font

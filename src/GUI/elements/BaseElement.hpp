@@ -53,6 +53,9 @@ public:
     virtual void setParent(Menu* newParent) { parent = newParent; }
     virtual void setId(const std::string& newId) { id = newId; }
 
+    // Update method (not pure virtual, can be overridden)
+    std::function<void(float)> onUpdate = [](float) {};  // there is also virtual update method onUpdate exist so i can assign lambda directly to a specyfic element instance
+
     // Center coordinates method (relative to parent)
     virtual std::pair<int, int> getCenter() const {
         return {x + width / 2, y + height / 2};
@@ -105,12 +108,22 @@ public:
         return getAbsoluteY() + height;
     }
 
+    virtual SDL_FRect getAbsoluteRect() const {
+        SDL_FRect r;
+        r.x = static_cast<float>(getAbsoluteX());
+        r.y = static_cast<float>(getAbsoluteY());
+        r.w = static_cast<float>(getWidth());
+        r.h = static_cast<float>(getHeight());
+        return r;
+    }
+
+
     // Core virtual methods
     virtual void render() = 0;
     virtual bool handleEvent(const SDL_Event& event) = 0;
 
     // Optional virtual methods
-    virtual void update(float deltaTime) {}
+    virtual void update(float deltaTime) {} // Default empty implementation
     virtual bool containsPoint(int pointX, int pointY) const {
         auto absPos = getAbsolutePosition();
         return pointX >= absPos.first && pointX <= absPos.first + width &&
