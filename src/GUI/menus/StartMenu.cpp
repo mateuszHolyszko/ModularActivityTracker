@@ -15,6 +15,9 @@ StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
 }
 
 void StartMenu::init() {
+    // Load images into ImageManager
+    imageManager.loadImage("src/GUI/images/test.jpg", "test");
+
     // Add ClockPanel (group of elements)
     auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
     for (auto& element : clockPanel) addElement(std::move(element));
@@ -159,6 +162,20 @@ void StartMenu::init() {
 
     // Add to menu
     addElement(std::move(exampleNumeric));
+
+    const Box& imageBox = layout.at("Image");
+    // Image element example
+    auto img = std::make_unique<ImageElement>(
+            renderContext,
+            &imageManager,    // Pass pointer to the manager
+            imageBox.x, imageBox.y, imageBox.width, imageBox.height,
+            "test",           // This is the key
+            3                 // Layer
+        );
+    img->setId("img_element");
+    addElement(std::move(img));
+    
+
 
     // Set focus to the first interactive element (Start button)
     BaseElement* firstButton = getElement("start_button");

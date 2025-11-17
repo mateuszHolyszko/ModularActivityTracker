@@ -10,6 +10,8 @@
 #include "../WorkThread.hpp"  
 #include "InputMenus/InputKeyboardMenu.hpp"
 #include "InputMenus/SelectInputMenu.hpp"
+#include "../../ImageManager.hpp"
+#include "../elements/ImageElement.hpp"
 
 class StartMenu : public Menu {
 private:
@@ -17,6 +19,7 @@ private:
     std::unique_ptr<SelectInputMenu> selectMenu; 
     std::string inputText = ""; // Text that will hold keyboard input
     std::string selectText; // New for select input
+    ImageManager imageManager;  // Create instance as member variable
 public:
     StartMenu(RenderContext* context, WorkThread* workThread);
     void init() override;
