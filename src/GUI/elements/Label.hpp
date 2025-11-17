@@ -27,6 +27,7 @@ public:
     void setText(const std::string& newText);
     void setFontSize(int size);
     void setWrapText(bool wrap);
+    void setBackgroundColor(const SDL_Color& color);
 
 private:
     std::string text;
@@ -35,6 +36,7 @@ private:
     bool hovered;
     bool wrapText;
     TextField* textField;
+    SDL_Color backgroundColor;
 
     void updateTextField();
 

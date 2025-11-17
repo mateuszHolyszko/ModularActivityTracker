@@ -195,3 +195,180 @@ void ImageManager::deleteTexture(GLuint textureId) {
         glDeleteTextures(1, &textureId);
     }
 }
+
+#pragma region <Filters>
+// Color Filters
+
+GLuint ImageManager::applyGrayscale(const std::string& sourceKey, const std::string& destKey) {
+    GLuint sourceTexId = getTexture(sourceKey);
+    if (sourceTexId == 0) {
+        std::cerr << "[ImageManager] Source image '" << sourceKey << "' not found\n";
+        return 0;
+    }
+    
+    GLuint resultTexId = applyGrayscale(sourceTexId);
+    
+    if (resultTexId != 0 && !destKey.empty()) {
+        const ImageData* data = getImageData(resultTexId);
+        if (data) {
+            imagesByKey[destKey] = *data;
+        }
+    }
+    
+    return resultTexId;
+}
+
+GLuint ImageManager::applyGrayscale(GLuint sourceTexId) {
+    const ImageData* sourceData = getImageData(sourceTexId);
+    if (!sourceData) {
+        std::cerr << "[ImageManager] Source texture not found for grayscale filter\n";
+        return 0;
+    }
+    
+    // Read back the source texture
+    int width = sourceData->width;
+    int height = sourceData->height;
+    std::vector<unsigned char> srcPixels(width * height * 4);
+    
+    glBindTexture(GL_TEXTURE_2D, sourceTexId);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcPixels.data());
+    
+    // Apply grayscale filter
+    std::vector<unsigned char> dstPixels(width * height * 4);
+    
+    for (int i = 0; i < width * height; ++i) {
+        int srcIdx = i * 4;
+        unsigned char r = srcPixels[srcIdx];
+        unsigned char g = srcPixels[srcIdx + 1];
+        unsigned char b = srcPixels[srcIdx + 2];
+        unsigned char a = srcPixels[srcIdx + 3];
+        
+        // Luminosity method (recommended)
+        unsigned char gray = static_cast<unsigned char>(0.21f * r + 0.72f * g + 0.07f * b);
+        
+        dstPixels[srcIdx] = gray;     // R
+        dstPixels[srcIdx + 1] = gray; // G
+        dstPixels[srcIdx + 2] = gray; // B
+        dstPixels[srcIdx + 3] = a;    // A
+    }
+    
+    // Create new texture
+    GLuint newTexId = createTextureFromData(dstPixels.data(), width, height);
+    
+    if (newTexId != 0) {
+        ImageData imgData = {newTexId, width, height};
+        imagesByTexture[newTexId] = imgData;
+    }
+    
+    return newTexId;
+}
+
+GLuint ImageManager::applyColorFilter(GLuint sourceTexId, const float rgbMultipliers[3]) {
+    const ImageData* sourceData = getImageData(sourceTexId);
+    if (!sourceData) {
+        std::cerr << "[ImageManager] Source texture not found for color filter\n";
+        return 0;
+    }
+    
+    int width = sourceData->width;
+    int height = sourceData->height;
+    std::vector<unsigned char> srcPixels(width * height * 4);
+    
+    glBindTexture(GL_TEXTURE_2D, sourceTexId);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcPixels.data());
+    
+    std::vector<unsigned char> dstPixels(width * height * 4);
+    
+    for (int i = 0; i < width * height; ++i) {
+        int srcIdx = i * 4;
+        
+        for (int channel = 0; channel < 3; ++channel) { // RGB only
+            float multiplied = srcPixels[srcIdx + channel] * rgbMultipliers[channel];
+            dstPixels[srcIdx + channel] = static_cast<unsigned char>(
+                std::min(255.0f, std::max(0.0f, multiplied))
+            );
+        }
+        dstPixels[srcIdx + 3] = srcPixels[srcIdx + 3]; // Keep alpha
+    }
+    
+    GLuint newTexId = createTextureFromData(dstPixels.data(), width, height);
+    
+    if (newTexId != 0) {
+        ImageData imgData = {newTexId, width, height};
+        imagesByTexture[newTexId] = imgData;
+    }
+    
+    return newTexId;
+}
+
+GLuint ImageManager::applySepia(const std::string& sourceKey, const std::string& destKey) {
+    GLuint sourceTexId = getTexture(sourceKey);
+    if (sourceTexId == 0) return 0;
+    
+    const ImageData* sourceData = getImageData(sourceTexId);
+    if (!sourceData) return 0;
+    
+    int width = sourceData->width;
+    int height = sourceData->height;
+    std::vector<unsigned char> srcPixels(width * height * 4);
+    
+    glBindTexture(GL_TEXTURE_2D, sourceTexId);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcPixels.data());
+    
+    std::vector<unsigned char> dstPixels(width * height * 4);
+    
+    for (int i = 0; i < width * height; ++i) {
+        int srcIdx = i * 4;
+        unsigned char r = srcPixels[srcIdx];
+        unsigned char g = srcPixels[srcIdx + 1];
+        unsigned char b = srcPixels[srcIdx + 2];
+        
+        // Sepia tone formula
+        dstPixels[srcIdx] = std::min(255, (int)(0.393f * r + 0.769f * g + 0.189f * b));     // R
+        dstPixels[srcIdx + 1] = std::min(255, (int)(0.349f * r + 0.686f * g + 0.168f * b)); // G
+        dstPixels[srcIdx + 2] = std::min(255, (int)(0.272f * r + 0.534f * g + 0.131f * b)); // B
+        dstPixels[srcIdx + 3] = srcPixels[srcIdx + 3]; // Alpha
+    }
+    
+    GLuint newTexId = createTextureFromData(dstPixels.data(), width, height);
+    
+    if (newTexId != 0 && !destKey.empty()) {
+        ImageData imgData = {newTexId, width, height};
+        imagesByKey[destKey] = imgData;
+        imagesByTexture[newTexId] = imgData;
+    }
+    
+    return newTexId;
+}
+
+GLuint ImageManager::applyInvert(const std::string& sourceKey, const std::string& destKey) {
+    GLuint sourceTexId = getTexture(sourceKey);
+    if (sourceTexId == 0) return 0;
+    
+    const ImageData* sourceData = getImageData(sourceTexId);
+    if (!sourceData) return 0;
+    
+    int width = sourceData->width;
+    int height = sourceData->height;
+    std::vector<unsigned char> srcPixels(width * height * 4);
+    
+    glBindTexture(GL_TEXTURE_2D, sourceTexId);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcPixels.data());
+    
+    std::vector<unsigned char> dstPixels(width * height * 4);
+    
+    for (int i = 0; i < width * height * 4; ++i) {
+        dstPixels[i] = 255 - srcPixels[i]; // Invert all channels including alpha
+    }
+    
+    GLuint newTexId = createTextureFromData(dstPixels.data(), width, height);
+    
+    if (newTexId != 0 && !destKey.empty()) {
+        ImageData imgData = {newTexId, width, height};
+        imagesByKey[destKey] = imgData;
+        imagesByTexture[newTexId] = imgData;
+    }
+    
+    return newTexId;
+}
+#pragma endregion <Filters>

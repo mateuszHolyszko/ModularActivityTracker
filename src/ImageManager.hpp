@@ -45,6 +45,14 @@ public:
     bool hasImage(const std::string& key) const;
     bool hasImage(GLuint textureId) const;
 
+    // Color Filters
+    GLuint applyGrayscale(const std::string& sourceKey, const std::string& destKey = "");
+    GLuint applyGrayscale(GLuint sourceTexId);
+    GLuint applyColorFilter(const std::string& sourceKey, const float rgbMultipliers[3], const std::string& destKey = "");
+    GLuint applyColorFilter(GLuint sourceTexId, const float rgbMultipliers[3]);
+    GLuint applySepia(const std::string& sourceKey, const std::string& destKey = "");
+    GLuint applyInvert(const std::string& sourceKey, const std::string& destKey = "");
+
 private:
     std::unordered_map<std::string, ImageData> imagesByKey;
     std::unordered_map<GLuint, ImageData> imagesByTexture;

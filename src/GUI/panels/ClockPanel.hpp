@@ -3,6 +3,7 @@
 
 #include "../Menu.hpp"
 #include "../elements/Label.hpp"
+#include "../elements/Button.hpp"
 #include <memory>
 #include <vector>
 #include <functional>

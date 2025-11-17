@@ -78,6 +78,7 @@ void Menu::handleEvent(const SDL_Event& event) {
     }
 }
 
+#pragma region <Navigation>
 // Helper function for ray-AABB intersection
 // Returns the distance along the ray to the intersection, or -1 if no intersection
 double rayIntersectsBox(double rayOriginX, double rayOriginY, double rayDirX, double rayDirY,
@@ -166,6 +167,11 @@ void Menu::navigate_arrows(int dirX, int dirY) {
                 rayCandidate = element.get();
             }
         }
+        // If we found a candidate with this ray, no need to check other rays
+        if (rayCandidate){
+            setFocus(rayCandidate);
+            return;
+        }
     }
     
     bestCandidate = rayCandidate;
@@ -232,6 +238,7 @@ void Menu::navigate_arrows(int dirX, int dirY) {
         setFocus(bestCandidate);
     }
 }
+#pragma endregion <Navigation>
 
 void Menu::update(float deltaTime) {
     // Update all elements

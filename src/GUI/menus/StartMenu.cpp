@@ -17,6 +17,7 @@ StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
 void StartMenu::init() {
     // Load images into ImageManager
     imageManager.loadImage("src/GUI/images/test.jpg", "test");
+    imageManager.applyGrayscale("test", "grayscale_test");
 
     // Add ClockPanel (group of elements)
     auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
@@ -169,7 +170,7 @@ void StartMenu::init() {
             renderContext,
             &imageManager,    // Pass pointer to the manager
             imageBox.x, imageBox.y, imageBox.width, imageBox.height,
-            "test",           // This is the key
+            "grayscale_test",           // This is the key
             3                 // Layer
         );
     img->setId("img_element");

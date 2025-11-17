@@ -11,8 +11,11 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     std::vector<std::unique_ptr<BaseElement>> elements;
     
     const Box& boxClock = layout.at("Clock");
+    const Box& boxClockLabel = layout.at("ClockLabel");
     const Box& boxDate = layout.at("Date");
+    const Box& boxDateLabel = layout.at("DateLabel");
     const Box& boxUserPrompt = layout.at("UserPrompt");
+    const Box& boxUserPromptLabel = layout.at("UserPromptLabel");
     
     // Helper function to get current time/date
     auto getCurrentTime = []() -> std::string {
@@ -29,14 +32,31 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         auto time_t = std::chrono::system_clock::to_time_t(now);
         auto tm = *std::localtime(&time_t);
         std::stringstream ss;
-        ss << std::put_time(&tm, "%Y-%m-%d");
+        ss << std::put_time(&tm, "%d-%m-%Y");
         return ss.str();
     };
     
+    #pragma region <Clock>
+    // Top Lable
+    auto clockLabel = std::make_unique<Label>(
+        context,  // Use renderContext instead of context
+        boxClockLabel.x, boxClockLabel.y, boxClockLabel.width, boxClockLabel.height,
+        "Clock",
+        true,  // Show border
+        20,     // Large font
+        2,       // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    clockLabel->setId("clock_label");
+    clockLabel->setBackgroundColor(style.getLgBgColor());
+    clockLabel->setWrapText(false);
+    elements.push_back(std::move(clockLabel));
+
     // Time display label with custom update
     auto timeLabel = std::make_unique<Label>(
         context, x + boxClock.x, y + boxClock.y, boxClock.width, boxClock.height, 
-        getCurrentTime(), true, 24, 2, parent, CENTER
+        getCurrentTime(), true, 20, 2, parent, CENTER
     );
     timeLabel->setId("clock_time");
     timeLabel->setWrapText(false);
@@ -53,11 +73,29 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     };
     
     elements.push_back(std::move(timeLabel));
+    #pragma endregion <Clock>
     
+    #pragma region <Date>
+    // Top Lable
+    auto dateLabelPrompt = std::make_unique<Label>(
+        context,  // Use renderContext instead of context
+        boxDateLabel.x, boxDateLabel.y, boxDateLabel.width, boxDateLabel.height,
+        "Date",
+        true,  // Show border
+        20,     // Large font
+        2,       // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    dateLabelPrompt->setId("date_label");
+    dateLabelPrompt->setBackgroundColor(style.getLgBgColor());
+    dateLabelPrompt->setWrapText(false);
+    elements.push_back(std::move(dateLabelPrompt));
+
     // Date label with custom update
     auto dateLabel = std::make_unique<Label>(
         context, x + boxDate.x, y + boxDate.y, boxDate.width, boxDate.height, 
-        getCurrentDate(), true, 24, 2, parent, CENTER
+        getCurrentDate(), true, 18, 2, parent, CENTER
     );
     dateLabel->setId("clock_date");
     dateLabel->setWrapText(false);
@@ -74,11 +112,29 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     };
     
     elements.push_back(std::move(dateLabel));
+    #pragma endregion <Date>
+
+    #pragma region <UserPrompt>
+    // Top Lable
+    auto userLabelPrompt = std::make_unique<Label>(
+        context,  // Use renderContext instead of context
+        boxUserPromptLabel.x, boxUserPromptLabel.y, boxUserPromptLabel.width, boxUserPromptLabel.height,
+        "User",
+        true,  // Show border
+        20,     // Large font
+        2,       // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    userLabelPrompt->setId("user_label");
+    userLabelPrompt->setBackgroundColor(style.getLgBgColor());
+    userLabelPrompt->setWrapText(false);
+    elements.push_back(std::move(userLabelPrompt));
 
     // User display label with custom update
     auto userLabel = std::make_unique<Label>(
         context, x + boxUserPrompt.x, y + boxUserPrompt.y, boxUserPrompt.width, boxUserPrompt.height, 
-        "Mateuszek", true, 24, 2, parent, CENTER
+        "Mateuszek", true, 20, 2, parent, CENTER
     );
     userLabel->setId("user_prompt");
     userLabel->setWrapText(false);
@@ -87,7 +143,77 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     // TO DO: implement user name fetch
     
     elements.push_back(std::move(userLabel));
+    #pragma endregion <UserPrompt>
 
+    #pragma region <MenuSelect>
+    // Get menu select boxes
+    const Box& boxMenu1 = layout.at("Menu1");
+    const Box& boxMenu2 = layout.at("Menu2");
+    const Box& boxMenu3 = layout.at("Menu3");
+    const Box& boxMenu4 = layout.at("Menu4");
+
+    // Menu buttons
+    auto Menu1Button = std::make_unique<Button>(
+        context,  // Use renderContext instead of context
+        boxMenu1.x, boxMenu1.y, boxMenu1.width, boxMenu1.height,
+        "Menu 1",
+        true,  // Show border
+        24,    // Medium font
+        2,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    Menu1Button->setId("menu1_button");
+    // Connect button callback
+    // TO DO: implement callbacks
+    elements.push_back(std::move(Menu1Button));
+
+    auto Menu2Button = std::make_unique<Button>(
+        context,  // Use renderContext instead of context
+        boxMenu2.x, boxMenu2.y, boxMenu2.width, boxMenu2.height,
+        "Menu 2",
+        true,  // Show border
+        24,    // Medium font
+        2,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    Menu2Button->setId("menu2_button");
+    // Connect button callback
+    // TO DO: implement callbacks
+    elements.push_back(std::move(Menu2Button));
+
+    auto Menu3Button = std::make_unique<Button>(
+        context,  // Use renderContext instead of context
+        boxMenu3.x, boxMenu3.y, boxMenu3.width, boxMenu3.height,
+        "Menu 3",
+        true,  // Show border
+        24,    // Medium font
+        2,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    Menu3Button->setId("menu3_button");
+    // Connect button callback
+    // TO DO: implement callbacks
+    elements.push_back(std::move(Menu3Button));
+
+    auto Menu4Button = std::make_unique<Button>(
+        context,  // Use renderContext instead of context
+        boxMenu4.x, boxMenu4.y, boxMenu4.width, boxMenu4.height,
+        "Menu 4",
+        true,  // Show border
+        24,    // Medium font
+        2,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    Menu4Button->setId("menu4_button");
+    // Connect button callback
+    // TO DO: implement callbacks
+    elements.push_back(std::move(Menu4Button));
+
+    #pragma endregion <MenuSelect>
 
     return elements;
 }

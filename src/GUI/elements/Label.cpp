@@ -12,7 +12,7 @@ Label::Label(RenderContext* context,
              HorizontalAlignment textAlign)
     : BaseElement(context, x, y, width, height, false, layer, parent),  // false for unselectable
       text(text), showBorder(showBorder), fontSize(fontSize),
-      hovered(false), wrapText(true) {
+      hovered(false), wrapText(true),backgroundColor(style.getBgColor()) {
 
     // Calculate text position
     int textX = x + 5;
@@ -44,13 +44,14 @@ void Label::render() {
     // Update TextField based on current state
     updateTextField();
 
-    // Determine background color based on state (unselectable, so use not selectable or default)
+    // Determine background color based on state
     SDL_Color bgColor;
     if (hovered) {
-        bgColor = style.getHighlightColor();  // Allow hover highlight for visual feedback
+        bgColor = style.getHighlightColor();  // Use highlight color on hover
     } else {
-        bgColor = style.getBgColor();  // Default background
+        bgColor = backgroundColor;  // Use stored background color 
     }
+
 
     // Draw background using graphic command
     GraphicCommand bgCmd;
@@ -127,6 +128,10 @@ void Label::setFontSize(int size) {
 void Label::setWrapText(bool wrap) {
     wrapText = wrap;
     updateTextField();
+}
+
+void Label::setBackgroundColor(const SDL_Color& color) {
+    backgroundColor = color;
 }
 
 void Label::updateTextField() {

@@ -3,7 +3,7 @@ from tkinter import simpledialog, filedialog, messagebox
 import re
 import os
 
-GRID_SIZE = 20
+GRID_SIZE = 10
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 480
 
@@ -31,6 +31,7 @@ class BoxDesigner:
 
         self.resizing_box = None
         self.resize_corner = None
+        self.resize_text_id = None  # NEW: Text for resize dimensions
 
         # For moving existing boxes
         self.dragging_box = None
@@ -69,6 +70,10 @@ class BoxDesigner:
             if corner:
                 self.resizing_box = box
                 self.resize_corner = corner
+                # NEW: Create resize dimension text
+                self.resize_text_id = self.canvas.create_text(
+                    event.x, event.y - 15, text="", fill="red", anchor="w"
+                )
                 return
 
             # Otherwise move box
@@ -86,11 +91,32 @@ class BoxDesigner:
                 self.start_x + 5, self.start_y - 10, text="", fill="gray", anchor="w"
             )
 
-
     def on_drag(self, event):
         if self.resizing_box:
             box = self.resizing_box
             x, y = self.snap(event.x), self.snap(event.y)
+
+            # NEW: Update dimension text position and content
+            if self.resize_text_id:
+                width = box["width"]
+                height = box["height"]
+                
+                # Calculate new dimensions based on corner
+                if self.resize_corner == "nw":
+                    new_w = box["x"] + box["width"] - x
+                    new_h = box["y"] + box["height"] - y
+                elif self.resize_corner == "ne":
+                    new_w = x - box["x"]
+                    new_h = box["y"] + box["height"] - y
+                elif self.resize_corner == "sw":
+                    new_w = box["x"] + box["width"] - x
+                    new_h = y - box["y"]
+                elif self.resize_corner == "se":
+                    new_w = x - box["x"]
+                    new_h = y - box["y"]
+                
+                self.canvas.itemconfig(self.resize_text_id, text=f"{new_w}x{new_h}")
+                self.canvas.coords(self.resize_text_id, event.x + 10, event.y - 15)
 
             # Resize depending on corner
             if self.resize_corner == "nw":
@@ -135,9 +161,12 @@ class BoxDesigner:
             self.canvas.itemconfig(self.size_text_id, text=f"{width}x{height}")
             self.canvas.coords(self.size_text_id, cur_x + 5, cur_y - 10)
 
-
     def on_release(self, event):
+        # NEW: Clean up resize dimension text
         if self.resizing_box:
+            if self.resize_text_id:
+                self.canvas.delete(self.resize_text_id)
+                self.resize_text_id = None
             self.resizing_box = None
             self.resize_corner = None
             return
@@ -203,7 +232,6 @@ class BoxDesigner:
                 return name
         return None
 
-
     def export_to_hpp(self):
         if not self.boxes:
             messagebox.showwarning("No boxes", "Nothing to export.")
@@ -227,7 +255,6 @@ class BoxDesigner:
             f.write("};\n")
 
         messagebox.showinfo("Exported", f"Layout saved to:\n{filepath}")
-
 
     def load_from_hpp(self):
         filepath = filedialog.askopenfilename(filetypes=[("C++ Header", "*.hpp")])
@@ -268,7 +295,6 @@ class BoxDesigner:
             })
 
         messagebox.showinfo("Loaded", f"Loaded {len(self.boxes)} boxes from:\n{os.path.basename(filepath)}")
-
 
 
 if __name__ == "__main__":
