@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ImageElement.hpp"
 #include "../../ImageManager.hpp"
 #include "../../RenderContext.hpp"
@@ -29,6 +30,24 @@ void ImageElement::render() {
                             static_cast<float>(width), 
                             static_cast<float>(height),
                             layer);
+
+    // Draw border if enabled
+    if (showBorder) {
+        SDL_Color borderColor = style.getBorderColor();
+        
+        GraphicCommand borderCmd;
+        borderCmd.type = GraphicCommand::BOX;
+        borderCmd.x1 = static_cast<float>(x);
+        borderCmd.y1 = static_cast<float>(y);
+        borderCmd.x2 = static_cast<float>(x + width);
+        borderCmd.y2 = static_cast<float>(y + height);
+        borderCmd.color = glm::vec4(borderColor.r / 255.0f, borderColor.g / 255.0f, borderColor.b / 255.0f, borderColor.a / 255.0f);
+        borderCmd.layer = layer;
+        borderCmd.lineWidth = 1.0f;
+        borderCmd.filled = false;
+        
+        renderContext->graphicQueue.push_back(borderCmd);
+    }
 }
 
 bool ImageElement::handleEvent(const SDL_Event& event) {

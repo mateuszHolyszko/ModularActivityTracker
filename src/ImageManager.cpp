@@ -371,4 +371,77 @@ GLuint ImageManager::applyInvert(const std::string& sourceKey, const std::string
     
     return newTexId;
 }
+
+GLuint ImageManager::replaceNonTransparentWithColor(const std::string& sourceKey, const unsigned char color[3], const std::string& destKey) {
+    GLuint sourceTexId = getTexture(sourceKey);
+    if (sourceTexId == 0) {
+        std::cerr << "[ImageManager] Source image '" << sourceKey << "' not found\n";
+        return 0;
+    }
+    
+    GLuint resultTexId = replaceNonTransparentWithColor(sourceTexId, color);
+    
+    if (resultTexId != 0 && !destKey.empty()) {
+        const ImageData* data = getImageData(resultTexId);
+        if (data) {
+            imagesByKey[destKey] = *data;
+        }
+    }
+    
+    return resultTexId;
+}
+
+GLuint ImageManager::replaceNonTransparentWithColor(const std::string& sourceKey, float r, float g, float b, const std::string& destKey) {
+    unsigned char color[3] = {
+        static_cast<unsigned char>(r * 255),
+        static_cast<unsigned char>(g * 255),
+        static_cast<unsigned char>(b * 255)
+    };
+    return replaceNonTransparentWithColor(sourceKey, color, destKey);
+}
+
+GLuint ImageManager::replaceNonTransparentWithColor(GLuint sourceTexId, const unsigned char color[3]) {
+    const ImageData* sourceData = getImageData(sourceTexId);
+    if (!sourceData) {
+        std::cerr << "[ImageManager] Source texture not found for color replacement filter\n";
+        return 0;
+    }
+    
+    int width = sourceData->width;
+    int height = sourceData->height;
+    std::vector<unsigned char> srcPixels(width * height * 4);
+    
+    glBindTexture(GL_TEXTURE_2D, sourceTexId);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcPixels.data());
+    
+    std::vector<unsigned char> dstPixels(width * height * 4);
+    
+    for (int i = 0; i < width * height; ++i) {
+        int srcIdx = i * 4;
+        unsigned char a = srcPixels[srcIdx + 3]; // Alpha channel
+        
+        if (a > 0) { // Non-transparent pixel
+            dstPixels[srcIdx] = color[0];     // R
+            dstPixels[srcIdx + 1] = color[1]; // G
+            dstPixels[srcIdx + 2] = color[2]; // B
+            dstPixels[srcIdx + 3] = a;        // Keep original alpha
+        } else { // Transparent pixel - keep as is
+            dstPixels[srcIdx] = srcPixels[srcIdx];
+            dstPixels[srcIdx + 1] = srcPixels[srcIdx + 1];
+            dstPixels[srcIdx + 2] = srcPixels[srcIdx + 2];
+            dstPixels[srcIdx + 3] = 0;
+        }
+    }
+    
+    // Create new texture
+    GLuint newTexId = createTextureFromData(dstPixels.data(), width, height);
+    
+    if (newTexId != 0) {
+        ImageData imgData = {newTexId, width, height};
+        imagesByTexture[newTexId] = imgData;
+    }
+    
+    return newTexId;
+}
+
 #pragma endregion <Filters>

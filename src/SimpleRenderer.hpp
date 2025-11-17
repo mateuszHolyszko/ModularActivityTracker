@@ -23,6 +23,7 @@ public:
     
     // Text measurement method - now private, only called by RenderContext
     float measureTextWidth(const std::string& text, const std::string& font, float fontSize);
+    float measureTextHeight(const std::string& text, const std::string& font, float fontSize);
 
 private:
     RenderContext* context = nullptr;

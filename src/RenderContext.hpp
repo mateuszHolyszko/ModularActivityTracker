@@ -91,6 +91,7 @@ struct RenderContext {
 
     // Forward declaration only - implementation in .cpp
     float measureTextWidth(const std::string& text, const std::string& font, float fontSize);
+    float measureTextHeight(const std::string& text, const std::string& font, float fontSize);
     void addNotification(const std::string& text);
     
     // Menu management

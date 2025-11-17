@@ -40,9 +40,9 @@ NumericInput::NumericInput(RenderContext* context,
     promptTextField = new TextField(
         renderContext,
         static_cast<float>(promptX), 
-        static_cast<float>(promptY + fontSize/2),
+        static_cast<float>(promptY),
         static_cast<float>(width - 10), 
-        static_cast<float>(fontSize/2),
+        static_cast<float>(promptHeight),
         prompt, 
         "",
         static_cast<float>(fontSize/2),  // Half font size
@@ -54,9 +54,9 @@ NumericInput::NumericInput(RenderContext* context,
     valueTextField = new TextField(
         renderContext,
         static_cast<float>(valueX), 
-        static_cast<float>(valueY + fontSize),
+        static_cast<float>(valueY),
         static_cast<float>(width - 10), 
-        static_cast<float>(fontSize),
+        static_cast<float>(valueHeight),
         valueString, 
         "",
         static_cast<float>(fontSize),  // Full font size
@@ -346,14 +346,14 @@ void NumericInput::updateTextFields() {
     int valueY = y + promptHeight + (valueHeight - fontSize) / 2;
     
     // Update prompt TextField with half font size
-    promptTextField->setPosition(static_cast<float>(promptX), static_cast<float>(promptY + fontSize/2));
-    promptTextField->setSize(static_cast<float>(width - 10), static_cast<float>(fontSize/2));
+    promptTextField->setPosition(static_cast<float>(promptX), static_cast<float>(promptY));
+    promptTextField->setSize(static_cast<float>(width - 10), static_cast<float>(promptHeight));
     promptTextField->setText(prompt);
     promptTextField->setFontSize(static_cast<float>(fontSize/2));  
     
     // Update value TextField
-    valueTextField->setPosition(static_cast<float>(valueX), static_cast<float>(valueY + fontSize));
-    valueTextField->setSize(static_cast<float>(width - 15), static_cast<float>(fontSize)); // Smaller to account for arrows
+    valueTextField->setPosition(static_cast<float>(valueX), static_cast<float>(valueY));
+    valueTextField->setSize(static_cast<float>(width - 15), static_cast<float>(valueHeight)); // Smaller to account for arrows
     valueTextField->setText(valueString);
     valueTextField->setFontSize(static_cast<float>(fontSize)); 
     

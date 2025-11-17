@@ -2,6 +2,7 @@
 #include "SimpleRenderer.hpp"
 #include "QuadRenderer.hpp"
 #include "GUI/Menus/StartMenu.hpp"
+#include "GUI/Menus/InitMenu/InitMenu.hpp"
 #include "PostProcess.hpp"  
 #include "GUI/widgets/LoadingWidget.hpp"  
 #include "GUI/WorkThread.hpp"
@@ -107,11 +108,14 @@ int main(int argc, char* argv[]) {
     postProc.addPass("src/GUI/shaders/barrel.vert", "src/GUI/shaders/barrel.frag", "barrel");  // Add your barrel  pass
 
     // Create and initialize the start menu
-    StartMenu startMenu(&ctx, &worker);
-    startMenu.init();
+    //StartMenu startMenu(&ctx, &worker);
+    //startMenu.init();
+    InitMenu initMenu(&ctx, &worker);
+    initMenu.init();
 
     // Set the start menu as current menu in the context
-    ctx.setCurrentMenu(&startMenu);
+    //ctx.setCurrentMenu(&startMenu);
+    ctx.setCurrentMenu(&initMenu);
 
     bool running = true;
     SDL_Event e;

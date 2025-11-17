@@ -4,6 +4,7 @@
 #include "BaseElement.hpp"
 #include <string>
 #include <GL/glew.h>
+#include "../../Style.hpp"
 
 class ImageManager;
 
@@ -12,6 +13,7 @@ private:
     ImageManager* imageManager;
     std::string imageKey;
     GLuint textureId;
+    bool showBorder;
 
 public:
     ImageElement(RenderContext* context,
@@ -28,6 +30,10 @@ public:
     
     // Change the displayed image
     void setImage(const std::string& newImageKey);
+
+    // Border management
+    void setShowBorder(bool show) { showBorder = show; }
+    bool isShowingBorder() const { return showBorder; }
 };
 
 #endif

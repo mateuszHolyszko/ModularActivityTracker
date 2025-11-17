@@ -17,7 +17,7 @@ public:
     // Constructor: Now takes RenderContext instead of SimpleRenderer
     TextField(RenderContext* context, float x, float y, float width, float height, const std::string& text, const std::string& font, float font_size, const glm::vec4& color, HorizontalAlignment hAlign, bool wrap);
 
-    // Render method: Returns vector of TextCommand(s) (single command, possibly truncated)
+    // Render method: Returns vector of TextCommand(s) (multiple commands for multi-line text)
     std::vector<TextCommand> render(int layer = 0);
 
     // Setters for dynamic updates
@@ -37,6 +37,9 @@ private:
     HorizontalAlignment hAlign_;
     bool wrap_;
 
+    // Helper to split text by newline characters
+    std::vector<std::string> splitByNewlines(const std::string& text);
+    
     // Helper to truncate text with "..." if it exceeds width
     std::string truncateText(const std::string& text, float maxWidth);
 };

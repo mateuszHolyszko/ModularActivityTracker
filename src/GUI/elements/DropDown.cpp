@@ -17,16 +17,16 @@ DropDown::DropDown(RenderContext* context,
       selectedOptionIndex(-1) { // Initialize with no selection
     
     // Calculate text position
-    int textX = x + 5;
-    int textY = y + (height - fontSize) / 2;
+    int textX = x;
+    int textY = y + 5;
     
     // Create TextField with alignment
     textField = new TextField(
         renderContext,
         static_cast<float>(textX), 
-        static_cast<float>(textY + fontSize),
+        static_cast<float>(textY),
         static_cast<float>(width - 10), 
-        static_cast<float>(fontSize),
+        static_cast<float>(height),
         prompt, 
         "",
         static_cast<float>(fontSize),
@@ -96,11 +96,11 @@ void DropDown::render() {
     int arrowAreaWidth = width - promptWidth;
     
     // Update TextField to use only the prompt area
-    int textX = x + 5;
-    int textY = y + (height - fontSize) / 2;
+    int textX = x;
+    int textY = y + 5;
     
-    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY + fontSize));
-    textField->setSize(static_cast<float>(promptWidth - 10), static_cast<float>(fontSize));
+    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY));
+    textField->setSize(static_cast<float>(promptWidth - 10), static_cast<float>(height));
     
     // Draw text using TextField
     auto textCommands = textField->render(layer + 1);
@@ -431,11 +431,11 @@ void DropDown::setDropDownHeight(int height) {
 
 void DropDown::updateTextField() {
     // Update TextField position and text based on current state
-    int textX = x + 5;
-    int textY = y + (height - fontSize) / 2;
+    int textX = x;
+    int textY = y + 5;
     
-    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY + fontSize));
-    textField->setSize(static_cast<float>(width - 10), static_cast<float>(fontSize));
+    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY));
+    textField->setSize(static_cast<float>(width - 10), static_cast<float>(height));
     
     // Update text content
     textField->setText(prompt);
@@ -472,9 +472,9 @@ void DropDown::updateOptionTextFields() {
         auto optionTextField = std::make_unique<TextField>(
             renderContext,
             static_cast<float>(startX),
-            static_cast<float>(optionY + fontSize),
+            static_cast<float>(optionY+2),
             static_cast<float>(width - 10),
-            static_cast<float>(fontSize),
+            static_cast<float>(optionHeight),
             options[i],
             "",
             static_cast<float>(fontSize),

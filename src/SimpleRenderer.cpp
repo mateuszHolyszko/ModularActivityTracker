@@ -305,6 +305,38 @@ float SimpleRenderer::measureTextWidth(const std::string& text, const std::strin
     return width;
 }
 
+float SimpleRenderer::measureTextHeight(const std::string& text, const std::string& font, float fontSize) {
+    if (!vg) {
+        std::cerr << "[SimpleRenderer] measureTextHeight: NanoVG context not initialized!\n";
+        return 0.0f;
+    }
+    
+    if (text.empty()) {
+        std::cout << "[SimpleRenderer] measureTextHeight: Empty text, returning 0\n";
+        return 0.0f;
+    }
+    
+    // Set up the font and size
+    nvgFontSize(vg, fontSize);
+    nvgFontFace(vg, font.empty() ? "default" : font.c_str());
+    
+    // Measure the text bounds
+    float bounds[4];
+    nvgTextBounds(vg, 0, 0, text.c_str(), nullptr, bounds);
+    
+    // Height is the difference between top (bounds[1]) and bottom (bounds[3])
+    float height = bounds[3] - bounds[1];
+    
+    // Debug output
+    // std::cout << "[SimpleRenderer] measureTextHeight: Text='" << text 
+    //           << "', Font='" << (font.empty() ? "default" : font) 
+    //           << "', Size=" << fontSize 
+    //           << "', Height=" << height 
+    //           << "', Bounds=[" << bounds[0] << ", " << bounds[1] << ", " << bounds[2] << ", " << bounds[3] << "]\n";
+    
+    return height;
+}
+
 void SimpleRenderer::shutdown() {
     if (vg) {
         nvgDeleteGL2(vg);  // Change from GLES2 to GL3

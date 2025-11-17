@@ -15,16 +15,16 @@ Button::Button(RenderContext* context,
       hovered(false), wrapText(true) {
     
     // Calculate text position
-    int textX = x + 5;
-    int textY = y + (height - fontSize) / 2;
+    int textX = x;
+    int textY = y + 5;
     
     // Create TextField with alignment
     textField = new TextField(
         renderContext,
         static_cast<float>(textX), 
-        static_cast<float>(textY + fontSize),
+        static_cast<float>(textY),
         static_cast<float>(width - 10), 
-        static_cast<float>(fontSize),
+        static_cast<float>(height),
         text, 
         "",
         static_cast<float>(fontSize),
@@ -169,11 +169,11 @@ void Button::setWrapText(bool wrap) {
 
 void Button::updateTextField() {
     // Update TextField position and text based on current state
-    int textX = x + 5;
-    int textY = y + (height - fontSize) / 2;
+    int textX = x;
+    int textY = y + 5;
     
-    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY + fontSize));
-    textField->setSize(static_cast<float>(width - 10), static_cast<float>(fontSize));
+    textField->setPosition(static_cast<float>(textX), static_cast<float>(textY));
+    textField->setSize(static_cast<float>(width - 10), static_cast<float>(height));
     
     // Update text content
     textField->setText(text);

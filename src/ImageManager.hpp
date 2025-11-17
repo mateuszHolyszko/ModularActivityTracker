@@ -52,6 +52,9 @@ public:
     GLuint applyColorFilter(GLuint sourceTexId, const float rgbMultipliers[3]);
     GLuint applySepia(const std::string& sourceKey, const std::string& destKey = "");
     GLuint applyInvert(const std::string& sourceKey, const std::string& destKey = "");
+    GLuint replaceNonTransparentWithColor(const std::string& sourceKey, const unsigned char color[3], const std::string& destKey = "");
+    GLuint replaceNonTransparentWithColor(GLuint sourceTexId, const unsigned char color[3]);
+    GLuint replaceNonTransparentWithColor(const std::string& sourceKey, float r, float g, float b, const std::string& destKey = "");
 
 private:
     std::unordered_map<std::string, ImageData> imagesByKey;
