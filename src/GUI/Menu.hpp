@@ -8,6 +8,7 @@
 #include "elements/BaseElement.hpp"
 #include "../RenderContext.hpp"
 #include "WorkThread.hpp"
+#include "../database/DatabaseManager.hpp"
 
 class Menu {
 protected:
@@ -16,9 +17,10 @@ protected:
     std::vector<std::unique_ptr<BaseElement>> guiElements;
     RenderContext* renderContext;
     WorkThread* worker;
+    DatabaseManager* dbManager;
 
 public:
-    Menu(RenderContext* context, WorkThread* workThread, const std::string& menuName);
+    Menu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr, const std::string& menuName);
     virtual ~Menu() = default;
 
     // Pure virtual method that derived menus must implement
@@ -44,6 +46,7 @@ public:
     virtual size_t getElementCount() const { return guiElements.size(); }
     virtual bool isEmpty() const { return guiElements.empty(); }
     RenderContext* getRenderContext() const { return renderContext; }
+    DatabaseManager* getDatabaseManager() const { return dbManager; }
 
 private:
     // Arrow navigation helper method

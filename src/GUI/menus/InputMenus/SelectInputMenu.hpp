@@ -13,9 +13,10 @@ private:
     std::vector<std::string> options;
 
 public:
-    SelectInputMenu(RenderContext* context, WorkThread* workThread,
+    SelectInputMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr,
                     Menu* returnMenu, BaseElement* returnFocus,
                     std::string* outputString, std::vector<std::string> options);
+
 
     void init() override;
     void closeMenu();

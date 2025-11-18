@@ -4,10 +4,10 @@
 #include <iostream>
 #include <algorithm>  // For std::min
 
-SelectInputMenu::SelectInputMenu(RenderContext* context, WorkThread* workThread,
+SelectInputMenu::SelectInputMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr,
                                  Menu* returnMenu, BaseElement* returnFocus,
                                  std::string* outputString, std::vector<std::string> options)
-    : Menu(context, workThread, "SelectInputMenu")
+    : Menu(context, workThread, dbMgr, "SelectInputMenu")  
     , returnMenu(returnMenu)
     , returnFocus(returnFocus)
     , outputString(outputString)

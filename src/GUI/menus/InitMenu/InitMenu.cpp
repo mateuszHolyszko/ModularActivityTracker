@@ -10,8 +10,8 @@
 #include "../../panels/ClockPanel.hpp"
 #include "InitMenuLayout.hpp"
 
-InitMenu::InitMenu(RenderContext* context, WorkThread* workThread)
-    : Menu(context, workThread, "InitMenu") {   // <-- pass worker to base
+InitMenu::InitMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr)
+    : Menu(context, workThread, dbMgr,"InitMenu") {   // <-- pass worker to base
 }
 
 void InitMenu::init() {
@@ -22,6 +22,9 @@ void InitMenu::init() {
     // Add ClockPanel (group of elements)
     auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
     for (auto& element : clockPanel) addElement(std::move(element));
+
+    // Fetch stuff from database
+    std::vector<std::string> users = dbManager->getAllUserNames();
 
     // Load boxes from layout (x,y,width,height)
     const Box& boxLogo = layout.at("MAT_Logo");  
@@ -38,7 +41,7 @@ void InitMenu::init() {
             1                           // Layer
         );
     img->setId("img_element");
-    img->setShowBorder(true);
+    img->setShowBorder(false);
     addElement(std::move(img));
 
     // Meta Info Label // =====================================
@@ -46,18 +49,17 @@ void InitMenu::init() {
         renderContext,  // Use renderContext instead of context
         boxMeta.x, boxMeta.y, boxMeta.width, boxMeta.height,
         "Meta Information\nVersion 0.1\nBuild Date: 17/11/2025\nAuthor: Mat",
-        true,  // Show border
+        false,  // Show border
         24,     // Large font
         1,       // Layer
         nullptr, // parent
-        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+        LEFT  // Text alignment - CENTER or RIGHT or LEFT
     );
     metaLabel->setId("meta_label");
     metaLabel->setWrapText(false);
     addElement(std::move(metaLabel));
 
     // Select user dropdown // =================================
-    std::vector<std::string> users = {"Klaudiusia","Mateuszek"}; // TODO fetch from db
     auto usersDropDown = std::make_unique<DropDown>(
         renderContext,
         boxSelectUsr.x, boxSelectUsr.y, boxSelectUsr.width, boxSelectUsr.height,
@@ -74,6 +76,18 @@ void InitMenu::init() {
 
     // Optional: Adjust dropdown height based on number of options
     usersDropDown->setDropDownHeight(static_cast<int>(users.size()) * 30); // 30px per option
+
+    // Set the callback to update CurrentUser when an option is selected
+    usersDropDown->setOnOptionSelected([this](int index, const std::string& selectedUser) {
+        AppGlobals::set<std::string>("CurrentUser", selectedUser);
+        AppGlobals::set<bool>("IsLoggedIn", true);
+        // Update User prompt in ClockPanel - cast to Label to use setText()
+        auto* label = dynamic_cast<Label*>(getElement("user_prompt"));
+        if (label) {
+            label->setText(selectedUser);
+        }
+        update(0.0f); // Force update to reflect changes
+    });
 
     addElement(std::move(usersDropDown));
 

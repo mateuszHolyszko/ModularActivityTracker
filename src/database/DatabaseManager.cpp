@@ -126,3 +126,37 @@ bool DatabaseManager::close() {
     }
     return true;
 }
+
+#pragma region <Queries>
+std::vector<std::string> DatabaseManager::getAllUserNames() {
+    std::vector<std::string> users;
+    
+    const char* sql = "SELECT name FROM user;";
+    sqlite3_stmt* stmt;
+    
+    // Prepare the SQL statement
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return users;
+    }
+    
+    // Execute the statement and process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        if (name) {
+            users.push_back(std::string(name));
+        }
+    }
+    
+    // Check if the loop ended due to an error
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
+    }
+    
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+    
+    return users;
+}
+#pragma endregion <Queries>

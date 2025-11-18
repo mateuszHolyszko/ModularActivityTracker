@@ -2,10 +2,10 @@
 #include "InputKeyboardMenuLayout.hpp"
 #include <iostream>
 
-InputKeyboardMenu::InputKeyboardMenu(RenderContext* context, WorkThread* workThread,
+InputKeyboardMenu::InputKeyboardMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr,
                                    Menu* returnMenu, BaseElement* returnFocus,
                                    std::string* outputString)
-    : Menu(context, workThread, "InputKeyboardMenu")
+    : Menu(context, workThread, dbMgr, "InputKeyboardMenu")  
     , returnMenu(returnMenu)
     , returnFocus(returnFocus)
     , outputString(outputString)  // Store the pointer (don't modify until Enter)

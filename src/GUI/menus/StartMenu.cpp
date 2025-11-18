@@ -10,8 +10,8 @@
 #include "../panels/ClockPanel.hpp"
 #include "StartMenu_layout.hpp"
 
-StartMenu::StartMenu(RenderContext* context, WorkThread* workThread)
-    : Menu(context, workThread, "StartMenu") {   // <-- pass worker to base
+StartMenu::StartMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr)
+    : Menu(context, workThread, dbMgr, "StartMenu") {   // <-- pass worker to base
 }
 
 void StartMenu::init() {
@@ -250,6 +250,7 @@ void StartMenu::onViewHistory() {
     auto keyboardMenu = std::make_unique<InputKeyboardMenu>(
         renderContext, 
         worker, 
+        dbManager,
         this,                    // returnMenu
         getCurrentFocus(),       // returnFocus  
         &inputText               // pointer to your output string
@@ -273,6 +274,7 @@ void StartMenu::onTestSelectInput() {
     auto selectMenu = std::make_unique<SelectInputMenu>(
         renderContext, 
         worker, 
+        dbManager,
         this,                    // returnMenu
         getCurrentFocus(),       // returnFocus  
         &selectText,             // pointer to output string

@@ -19,7 +19,7 @@ private:
     std::string selectText; // New for select input
     ImageManager imageManager;  // Create instance as member variable
 public:
-    InitMenu(RenderContext* context, WorkThread* workThread);
+    InitMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr);
     void init() override;
 
 private:

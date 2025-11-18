@@ -14,7 +14,7 @@ private:
     std::string internalString; // Internal accumulator
 
 public:
-    InputKeyboardMenu(RenderContext* context, WorkThread* workThread, 
+    InputKeyboardMenu(RenderContext* context, WorkThread* workThread,DatabaseManager* dbMgr, 
                      Menu* returnMenu, BaseElement* returnFocus, 
                      std::string* outputString);
     

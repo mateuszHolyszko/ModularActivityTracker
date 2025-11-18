@@ -48,6 +48,7 @@ public:
     virtual void setSize(int newWidth, int newHeight) { width = newWidth; height = newHeight; }
     virtual void setVisible(bool isVisible) { visible = isVisible; }
     virtual void setEnabled(bool isEnabled) { enabled = isEnabled; }
+    virtual void setSelectable(bool isSelectable) { selectable = isSelectable; }
     virtual void setSelected(bool selected) { is_selected = selected; }
     virtual void setLayer(int newLayer) { layer = newLayer; }
     virtual void setParent(Menu* newParent) { parent = newParent; }

@@ -42,6 +42,9 @@ public:
     
     void render() override;
     bool handleEvent(const SDL_Event& event) override;
+    void setOnOptionSelected(std::function<void(int, const std::string&)> callback) { 
+        onOptionSelectedCallback = callback; 
+    }
     
     // Prompt management
     void setPrompt(const std::string& newPrompt);
@@ -61,6 +64,7 @@ public:
     
     // Callback management
     void setOnPress(std::function<void()> callback) { onPressCallback = callback; }
+    std::function<void(int, const std::string&)> onOptionSelectedCallback;
     
     // Hover state
     bool isHovered() const { return hovered; }

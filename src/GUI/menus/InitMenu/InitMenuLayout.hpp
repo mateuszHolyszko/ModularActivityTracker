@@ -7,7 +7,7 @@ struct Box { int x, y, width, height; };
 
 static const std::unordered_map<std::string, Box> layout = {
     {"nav_bar", { 0, 420, 820, 60 } },
-    {"MAT_Logo", { 10, 10, 200, 200 } },
-    {"Meta_Info", { 220, 10, 230, 110 } },
-    {"SelectUser", { 10, 370, 210, 40 } },
+    {"MAT_Logo", { 10, 10, 160, 160 } },
+    {"Meta_Info", { 180, 10, 230, 110 } },
+    {"SelectUser", { 10, 380, 200, 30 } },
 };

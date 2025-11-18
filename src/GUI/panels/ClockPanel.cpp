@@ -11,9 +11,7 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     std::vector<std::unique_ptr<BaseElement>> elements;
     
     const Box& boxClock = layout.at("Clock");
-    const Box& boxClockLabel = layout.at("ClockLabel");
     const Box& boxDate = layout.at("Date");
-    const Box& boxDateLabel = layout.at("DateLabel");
     const Box& boxUserPrompt = layout.at("UserPrompt");
     const Box& boxUserPromptLabel = layout.at("UserPromptLabel");
     
@@ -37,21 +35,6 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     };
     
     #pragma region <Clock>
-    // Top Lable
-    auto clockLabel = std::make_unique<Label>(
-        context,  // Use renderContext instead of context
-        boxClockLabel.x, boxClockLabel.y, boxClockLabel.width, boxClockLabel.height,
-        "Clock",
-        true,  // Show border
-        20,     // Large font
-        2,       // Layer
-        nullptr, // parent
-        CENTER  // Text alignment - CENTER or RIGHT or LEFT
-    );
-    clockLabel->setId("clock_label");
-    clockLabel->setBackgroundColor(style.getLgBgColor());
-    clockLabel->setWrapText(false);
-    elements.push_back(std::move(clockLabel));
 
     // Time display label with custom update
     auto timeLabel = std::make_unique<Label>(
@@ -76,22 +59,7 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     #pragma endregion <Clock>
     
     #pragma region <Date>
-    // Top Lable
-    auto dateLabelPrompt = std::make_unique<Label>(
-        context,  // Use renderContext instead of context
-        boxDateLabel.x, boxDateLabel.y, boxDateLabel.width, boxDateLabel.height,
-        "Date",
-        true,  // Show border
-        20,     // Large font
-        2,       // Layer
-        nullptr, // parent
-        CENTER  // Text alignment - CENTER or RIGHT or LEFT
-    );
-    dateLabelPrompt->setId("date_label");
-    dateLabelPrompt->setBackgroundColor(style.getLgBgColor());
-    dateLabelPrompt->setWrapText(false);
-    elements.push_back(std::move(dateLabelPrompt));
-
+    
     // Date label with custom update
     auto dateLabel = std::make_unique<Label>(
         context, x + boxDate.x, y + boxDate.y, boxDate.width, boxDate.height, 
@@ -131,16 +99,23 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     userLabelPrompt->setWrapText(false);
     elements.push_back(std::move(userLabelPrompt));
 
+    // Helper function to get current user name from AppGlobals
+    auto getCurrentUser = []() -> std::string {
+        if (AppGlobals::has("CurrentUser")) {
+            return AppGlobals::get<std::string>("CurrentUser");
+        } else {
+            return "None";
+        }
+    };
+
+    std::string currentUser = getCurrentUser();
     // User display label with custom update
     auto userLabel = std::make_unique<Label>(
         context, x + boxUserPrompt.x, y + boxUserPrompt.y, boxUserPrompt.width, boxUserPrompt.height, 
-        "Mateuszek", true, 20, 2, parent, CENTER
+        currentUser, true, 20, 2, parent, CENTER
     );
     userLabel->setId("user_prompt");
     userLabel->setWrapText(false);
-    
-    // Override the update method for this specific instance
-    // TO DO: implement user name fetch
     
     elements.push_back(std::move(userLabel));
     #pragma endregion <UserPrompt>
@@ -151,6 +126,14 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     const Box& boxMenu2 = layout.at("Menu2");
     const Box& boxMenu3 = layout.at("Menu3");
     const Box& boxMenu4 = layout.at("Menu4");
+
+    // Define the common onUpdate function once
+    auto menuButtonUpdate = [](Button* buttonPtr, float dt) {
+        bool loggedIn = AppGlobals::get<bool>("IsLoggedIn");
+        //std::cerr << "' update: loggedIn=" << loggedIn << std::endl;
+        buttonPtr->setSelectable(loggedIn);
+        //buttonPtr->setEnabled(loggedIn); // disabeld elements dont get onUpdate called, retard :3
+    };
 
     // Menu buttons
     auto Menu1Button = std::make_unique<Button>(
@@ -164,6 +147,9 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     Menu1Button->setId("menu1_button");
+    Menu1Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu1Button.get()](float dt) {
+        menuButtonUpdate(buttonPtr, dt);
+    };
     // Connect button callback
     // TO DO: implement callbacks
     elements.push_back(std::move(Menu1Button));
@@ -179,6 +165,9 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     Menu2Button->setId("menu2_button");
+    Menu2Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu2Button.get()](float dt) {
+        menuButtonUpdate(buttonPtr, dt);
+    };
     // Connect button callback
     // TO DO: implement callbacks
     elements.push_back(std::move(Menu2Button));
@@ -194,6 +183,9 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     Menu3Button->setId("menu3_button");
+    Menu3Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu3Button.get()](float dt) {
+        menuButtonUpdate(buttonPtr, dt);
+    };
     // Connect button callback
     // TO DO: implement callbacks
     elements.push_back(std::move(Menu3Button));
@@ -209,6 +201,9 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );
     Menu4Button->setId("menu4_button");
+    Menu4Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu4Button.get()](float dt) {
+        menuButtonUpdate(buttonPtr, dt);
+    };
     // Connect button callback
     // TO DO: implement callbacks
     elements.push_back(std::move(Menu4Button));

@@ -367,6 +367,11 @@ void DropDown::selectCurrentOption() {
         setPrompt(options[selectedOptionIndex]);
         setIsActive(false);
         
+        // Call the option selected callback if set
+        if (onOptionSelectedCallback) {
+            onOptionSelectedCallback(selectedOptionIndex, options[selectedOptionIndex]);
+        }
+        
         std::cerr << "Option selected: '" << options[selectedOptionIndex] 
                   << "' (index: " << selectedOptionIndex << ")" << std::endl;
     }

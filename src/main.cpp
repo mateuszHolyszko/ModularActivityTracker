@@ -8,6 +8,7 @@
 #include "GUI/WorkThread.hpp"
 #include "GUI/NotificationSystem.hpp"
 #include "database/DatabaseManager.hpp"
+#include "GUI/AppGlobals.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>  // Keep for desktop; 
@@ -108,9 +109,10 @@ int main(int argc, char* argv[]) {
     postProc.addPass("src/GUI/shaders/barrel.vert", "src/GUI/shaders/barrel.frag", "barrel");  // Add your barrel  pass
 
     // Create and initialize the start menu
-    //StartMenu startMenu(&ctx, &worker);
+    //StartMenu startMenu(&ctx, &worker, &dbManager);
     //startMenu.init();
-    InitMenu initMenu(&ctx, &worker);
+    AppGlobals::set<bool>("IsLoggedIn", false);  // Set global state log in status to false
+    InitMenu initMenu(&ctx, &worker, &dbManager);
     initMenu.init();
 
     // Set the start menu as current menu in the context

@@ -3,8 +3,8 @@
 #include <cmath>
 #include <limits>
 
-Menu::Menu(RenderContext* context, WorkThread* workThread, const std::string& menuName)
-    : renderContext(context), worker(workThread), name(menuName), current_focus(nullptr) {}
+Menu::Menu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr, const std::string& menuName)
+    : renderContext(context), worker(workThread), dbManager(dbMgr), name(menuName), current_focus(nullptr) {}
 
 
 void Menu::render() {

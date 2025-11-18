@@ -46,7 +46,7 @@ void Button::render() {
 
     // Determine background color based on state
     SDL_Color bgColor;
-    if (!enabled) {
+    if (!enabled or selectable==false) {
         bgColor = style.getBgColorNotSelectable();
     } else if (is_selected) {
         bgColor = style.getActiveBgColor();
