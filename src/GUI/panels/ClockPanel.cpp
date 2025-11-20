@@ -14,6 +14,7 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     const Box& boxDate = layout.at("Date");
     const Box& boxUserPrompt = layout.at("UserPrompt");
     const Box& boxUserPromptLabel = layout.at("UserPromptLabel");
+    const Box& boxUserSprite = layout.at("ClockWidget");
     
     // Helper function to get current time/date
     auto getCurrentTime = []() -> std::string {
@@ -139,7 +140,7 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     auto Menu1Button = std::make_unique<Button>(
         context,  // Use renderContext instead of context
         boxMenu1.x, boxMenu1.y, boxMenu1.width, boxMenu1.height,
-        "Menu 1",
+        "Overview",
         true,  // Show border
         24,    // Medium font
         2,      // Layer
@@ -150,8 +151,20 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     Menu1Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu1Button.get()](float dt) {
         menuButtonUpdate(buttonPtr, dt);
     };
-    // Connect button callback
-    // TO DO: implement callbacks
+    
+    // Set onPress callback - no parameters needed
+    Menu1Button->setOnPress([]() {
+        //std::cout << "Overview button pressed!" << std::endl;
+        RenderContext* context = AppGlobals::get<RenderContext*>("RenderContext");
+        WorkThread* worker = AppGlobals::get<WorkThread*>("WorkerThread");
+        DatabaseManager* dbManager = AppGlobals::get<DatabaseManager*>("DatabaseManager");
+       // Create the menu dynamically
+        auto startMenu = std::make_unique<StartMenu>(context, worker, dbManager);
+        startMenu->init();
+
+        context->setCurrentMenu(startMenu.release()); // Release ownership to context
+    });
+
     elements.push_back(std::move(Menu1Button));
 
     auto Menu2Button = std::make_unique<Button>(
@@ -209,6 +222,26 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     elements.push_back(std::move(Menu4Button));
 
     #pragma endregion <MenuSelect>
+
+    #pragma region <SpriteElement>
+    // Get ImageManager from AppGlobals
+    ImageManager* imageManager = AppGlobals::get<ImageManager*>("ImageManager");
+    // Create sprite element
+    auto catSprite = std::make_unique<CatWidget>(
+        context,
+        imageManager,
+        boxUserSprite.x, boxUserSprite.y, boxUserSprite.width, boxUserSprite.height,  // position and display size
+        160,840,
+        1  // layer
+    );
+
+    catSprite->setId("clock_sprite");
+    catSprite->setShowBorder(true);
+    catSprite->setFrameTime(0.5f);
+    // Add to menu
+    elements.push_back(std::move(catSprite));
+
+    #pragma endregion <SpriteElement>
 
     return elements;
 }

@@ -2,9 +2,12 @@
 #define CLOCKPANEL_HPP
 
 #include "../Menu.hpp"
+#include "../menus/StartMenu.hpp"
 #include "../elements/Label.hpp"
 #include "../elements/Button.hpp"
+#include "../elements/SpriteElement.hpp"
 #include "../AppGlobals.h"
+#include "../widgets/CatWidget.hpp"
 #include <memory>
 #include <vector>
 #include <functional>
@@ -24,6 +27,8 @@ private:
     static void updateClockDisplay(Label* timeLabel, Label* dateLabel);
     static std::string getCurrentTime();
     static std::string getCurrentDate();
+
+    void onMenu1Button();
 };
 
 #endif

@@ -30,6 +30,8 @@
                 "src/GUI/elements/NumericInput.cpp",
                 "src/GUI/elements/ImageElement.cpp",
                 "src/GUI/panels/ClockPanel.cpp",
+                "src/GUI/elements/SpriteElement.cpp",
+                "src/GUI/widgets/CatWidget.cpp",
                 "src/GUI/AppGlobals.cpp",
                 "src/database/DatabaseManager.cpp",
                 "external/nanovg/src/nanovg.c",

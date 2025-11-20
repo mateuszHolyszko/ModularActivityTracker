@@ -16,6 +16,7 @@ private:
     int fontSize;
     bool hovered;
     bool wrapText;
+    bool is_activated;
     std::function<void()> onPressCallback;
 
 public:
@@ -54,6 +55,9 @@ public:
     
     // Hover state
     bool isHovered() const { return hovered; }
+
+    bool isActivated() const { return is_activated; }
+    void setActivated(bool activated) { is_activated = activated; }
 
 private:
     void onPress();

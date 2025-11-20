@@ -27,6 +27,7 @@ bool DatabaseManager::createTables() {
         return false;
     }
 
+    #pragma region <Schema>
     // Your schema
     const char* createTablesSQL = R"(
         CREATE TABLE IF NOT EXISTS user (
@@ -105,7 +106,7 @@ bool DatabaseManager::createTables() {
           target_muscle_id INTEGER REFERENCES target_muscle(id)
         );
     )";
-
+    #pragma endregion <Schema>
     char* errorMessage = nullptr;
     rc = sqlite3_exec(db, createTablesSQL, nullptr, nullptr, &errorMessage);
     
@@ -127,36 +128,88 @@ bool DatabaseManager::close() {
     return true;
 }
 
-#pragma region <Queries>
-std::vector<std::string> DatabaseManager::getAllUserNames() {
-    std::vector<std::string> users;
-    
-    const char* sql = "SELECT name FROM user;";
+// Template method implementation
+template<typename T>
+std::vector<T> DatabaseManager::executeQuery(const std::string& sql, 
+                                           std::function<T(sqlite3_stmt*)> rowMapper) {
+    std::vector<T> results;
     sqlite3_stmt* stmt;
     
-    // Prepare the SQL statement
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return users;
+        return results;
     }
     
-    // Execute the statement and process each row
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-        if (name) {
-            users.push_back(std::string(name));
-        }
+        results.push_back(rowMapper(stmt));
     }
     
-    // Check if the loop ended due to an error
     if (rc != SQLITE_DONE) {
         std::cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
     }
     
-    // Finalize the statement to free resources
     sqlite3_finalize(stmt);
+    return results;
+}
+
+bool DatabaseManager::executeNonQuery(const std::string& sql) {
+    char* errorMessage = nullptr;
+    int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errorMessage);
     
-    return users;
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errorMessage << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    
+    return true;
+}
+#pragma region <Queries>
+// Specific query implementations
+
+
+std::vector<std::string> DatabaseManager::getAllUserNames() {
+    return executeQuery<std::string>(
+        "SELECT name FROM user;",
+        [](sqlite3_stmt* stmt) -> std::string {
+            const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            return name ? std::string(name) : "";
+        }
+    );
+}
+
+std::vector<std::string> DatabaseManager::getProgramNamesForUser(int userId) {
+    std::string sql = "SELECT name FROM program WHERE user_id = " + std::to_string(userId) + ";";
+    
+    return executeQuery<std::string>(
+        sql,
+        [](sqlite3_stmt* stmt) -> std::string {
+            const char* programName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            return programName ? std::string(programName) : "";
+        }
+    );
+}
+
+std::vector<int> DatabaseManager::getUserIds() {
+    return executeQuery<int>(
+        "SELECT id FROM user;",
+        [](sqlite3_stmt* stmt) -> int {
+            return sqlite3_column_int(stmt, 0);
+        }
+    );
+}
+
+bool DatabaseManager::createUser(const std::string& name, double weight, double height) {
+    std::string sql = "INSERT INTO user (name, weight, height) VALUES ('" + 
+                     name + "', " + std::to_string(weight) + ", " + 
+                     std::to_string(height) + ");";
+    return executeNonQuery(sql);
 }
 #pragma endregion <Queries>
+
+// Explicit template instantiation for common types
+template std::vector<std::string> DatabaseManager::executeQuery<std::string>(
+    const std::string&, std::function<std::string(sqlite3_stmt*)>);
+template std::vector<int> DatabaseManager::executeQuery<int>(
+    const std::string&, std::function<int(sqlite3_stmt*)>);

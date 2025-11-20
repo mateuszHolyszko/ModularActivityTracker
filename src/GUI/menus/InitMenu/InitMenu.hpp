@@ -21,7 +21,8 @@ private:
 public:
     InitMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr);
     void init() override;
-
+    void onEditUserButton();
+    void update(float deltaTime) override;
 private:
     
 };

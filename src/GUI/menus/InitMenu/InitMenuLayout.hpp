@@ -9,5 +9,6 @@ static const std::unordered_map<std::string, Box> layout = {
     {"nav_bar", { 0, 420, 820, 60 } },
     {"MAT_Logo", { 10, 10, 160, 160 } },
     {"Meta_Info", { 180, 10, 230, 110 } },
-    {"SelectUser", { 10, 380, 200, 30 } },
+    {"SelectUser", { 0, 370, 200, 40 } },
+    {"EditButton", { 210, 370, 60, 40 } },
 };

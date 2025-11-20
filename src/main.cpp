@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     } else {
         std::cerr << "Database initialized successfully!" << std::endl;
     }
+    AppGlobals::set<DatabaseManager*>("DatabaseManager", &dbManager);
 
     const int screenW = 800;
     const int screenH = 480;
@@ -64,8 +65,10 @@ int main(int argc, char* argv[]) {
 
     // Initialize render context and renderer
     RenderContext ctx;
+    AppGlobals::set<RenderContext*>("RenderContext", &ctx);
 
     WorkThread worker;
+    AppGlobals::set<WorkThread*>("WorkerThread", &worker);
     LoadingWidget defultLoading;
     defultLoading.setStyle(LoadingWidget::Style::SPINNER);
     defultLoading.setPosition(screenW/2, screenH/2);
@@ -89,6 +92,7 @@ int main(int argc, char* argv[]) {
     );
     // Connect it to the render context
     ctx.notificationSystem = notificationSystem.get();
+    AppGlobals::set<NotificationSystem*>("NotificationSystem", notificationSystem.get());
 
     if (!renderer.init(&ctx, screenW, screenH)) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -108,12 +112,19 @@ int main(int argc, char* argv[]) {
     postProc.addPass("src/GUI/shaders/barrel.vert", "src/GUI/shaders/distortion.frag", "distortion");  // Add your distortion  pass
     postProc.addPass("src/GUI/shaders/barrel.vert", "src/GUI/shaders/barrel.frag", "barrel");  // Add your barrel  pass
 
+    ImageManager imageManager; // Create ImageManager instance for Cat Sprite since it will be used in all menus (navbar)
+    // otherwise imageManager should be member of each menu that uses it so that images persist while menu is active and are freed when menu is destroyed
+    imageManager.loadImage("src/GUI/images/cat/spritesheet.png", "cat_sprite_sheet");
+    imageManager.applyGrayscale("cat_sprite_sheet","cat_sprite_sheet");
+    AppGlobals::set<ImageManager*>("ImageManager", &imageManager);
+
     // Create and initialize the start menu
     //StartMenu startMenu(&ctx, &worker, &dbManager);
     //startMenu.init();
     AppGlobals::set<bool>("IsLoggedIn", false);  // Set global state log in status to false
     InitMenu initMenu(&ctx, &worker, &dbManager);
     initMenu.init();
+
 
     // Set the start menu as current menu in the context
     //ctx.setCurrentMenu(&startMenu);

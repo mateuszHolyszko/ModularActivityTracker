@@ -22,6 +22,11 @@ void StartMenu::init() {
     // Add ClockPanel (group of elements)
     auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
     for (auto& element : clockPanel) addElement(std::move(element));
+    // Set MenuButtons styles to indicate active menu
+    dynamic_cast<Button*>(getElement("menu1_button"))->setActivated(true);
+    dynamic_cast<Button*>(getElement("menu2_button"))->setSelected(false);
+    dynamic_cast<Button*>(getElement("menu3_button"))->setSelected(false);
+    dynamic_cast<Button*>(getElement("menu4_button"))->setSelected(false);
 
     // Load box from layout (x,y,width,height)
     const Box& boxLabel = layout.at("Label");  // get box by name
@@ -31,8 +36,8 @@ void StartMenu::init() {
         boxLabel.x, boxLabel.y, boxLabel.width, boxLabel.height,
         "Activity Tracker",
         false,  // Show border
-        42,     // Large font
-        1,       // Layer
+        36,     // Large font
+        2,       // Layer
         nullptr, // parent
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
     );

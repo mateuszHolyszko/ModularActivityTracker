@@ -12,7 +12,7 @@ Button::Button(RenderContext* context,
              HorizontalAlignment textAlign)  // Add alignment parameter
     : BaseElement(context, x, y, width, height, true, layer, parent),
       text(text), showBorder(showBorder), fontSize(fontSize), 
-      hovered(false), wrapText(true) {
+      hovered(false), wrapText(true), is_activated(false) {
     
     // Calculate text position
     int textX = x;
@@ -48,7 +48,7 @@ void Button::render() {
     SDL_Color bgColor;
     if (!enabled or selectable==false) {
         bgColor = style.getBgColorNotSelectable();
-    } else if (is_selected) {
+    } else if (is_selected || is_activated) {
         bgColor = style.getActiveBgColor();
     } else if (hovered) {
         bgColor = style.getHighlightColor();

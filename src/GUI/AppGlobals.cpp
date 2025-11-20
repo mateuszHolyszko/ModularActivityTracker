@@ -39,4 +39,10 @@ if (AppGlobals::has("CurrentUser")) {
 // Remove
 AppGlobals::remove<std::string>("CurrentUser");
 
+// Usefull
+AppGlobals::get<WorkThread*>("WorkerThread");
+AppGlobals::get<DatabaseManager*>("DatabaseManager");
+AppGlobals::get<NotificationSystem*>("NotificationSystem");
+AppGlobals::get<RenderContext*>("RenderContext");
+
 */

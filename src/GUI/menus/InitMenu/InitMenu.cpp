@@ -23,6 +23,12 @@ void InitMenu::init() {
     auto clockPanel = ClockPanel::create(renderContext, 0, 0, this);
     for (auto& element : clockPanel) addElement(std::move(element));
 
+    // Set MenuButtons styles to indicate active menu, since its init menu none should be active
+    dynamic_cast<Button*>(getElement("menu1_button"))->setActivated(false);
+    dynamic_cast<Button*>(getElement("menu2_button"))->setSelected(false);
+    dynamic_cast<Button*>(getElement("menu3_button"))->setSelected(false);
+    dynamic_cast<Button*>(getElement("menu4_button"))->setSelected(false);
+
     // Fetch stuff from database
     std::vector<std::string> users = dbManager->getAllUserNames();
 
@@ -30,6 +36,7 @@ void InitMenu::init() {
     const Box& boxLogo = layout.at("MAT_Logo");  
     const Box& boxMeta = layout.at("Meta_Info");
     const Box& boxSelectUsr = layout.at("SelectUser");
+    const Box& boxEditButton = layout.at("EditButton");
 
     #pragma region <Element Definitions>
     // Logo Image // =====================================
@@ -91,9 +98,41 @@ void InitMenu::init() {
 
     addElement(std::move(usersDropDown));
 
+    // Edit Users Button // =================================
+    auto editUserButton = std::make_unique<Button>(
+        renderContext,  // Use renderContext instead of context
+        boxEditButton.x, boxEditButton.y, boxEditButton.width, boxEditButton.height,
+        "Edit",
+        true,  // Show border
+        24,    // Medium font
+        1,      // Layer
+        nullptr, // parent
+        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    editUserButton->setId("edit_user_button");
+    // Connect button callback
+    editUserButton->setOnPress([this]() { onEditUserButton(); });
+    addElement(std::move(editUserButton));
+
     #pragma endregion <Element Definitions>
 
     // Set focus to the first interactive element (Select User dropdown)
     setFocus(getElement("users_dropdown"));
     
+}
+
+void InitMenu::onEditUserButton() {
+    std::cerr << "Test Edit button" << std::endl;
+    renderContext->addNotification("Test Edit button");
+
+}
+
+// Menu update override
+void InitMenu::update(float deltaTime) {
+    // Call base Menu update to handle element updates
+    Menu::update(deltaTime);
+
+    // Additional InitMenu-specific updates 
+    bool loggedIn = AppGlobals::get<bool>("IsLoggedIn");
+    getElement("edit_user_button")->setSelectable(loggedIn);
 }
