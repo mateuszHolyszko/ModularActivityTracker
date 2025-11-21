@@ -1,0 +1,35 @@
+// Example usage in  main application
+DatabaseManager dbManager;
+dbManager.initialize();
+
+// First, create the test user if they don't exist
+dbManager.createUser("test", 75.5, 180.0);
+
+// Create sample measurements
+UserMeasurements measurements;
+measurements.date = "2024-01-15";
+measurements.weight = 75.5;
+measurements.arms = 35.5;
+measurements.calves = 38.0;
+measurements.neck = 40.0;
+measurements.thighs = 55.0;
+measurements.chest = 105.0;
+measurements.waist = 85.0;
+measurements.hips = 95.0;
+measurements.forearms = 32.0;
+
+// Insert the measurements
+dbManager.insertUserMeasurements("test", measurements);
+
+// Get user ID and retrieve latest measurements
+int userId = dbManager.getUserIdByName("test");
+if (userId != -1) {
+    UserMeasurements latest = dbManager.getLatestUserMeasurements(userId);
+    
+    std::cout << "Latest measurements for user 'test':" << std::endl;
+    std::cout << "Date: " << latest.date << std::endl;
+    std::cout << "Weight: " << latest.weight << " kg" << std::endl;
+    std::cout << "Chest: " << latest.chest << " cm" << std::endl;
+    std::cout << "Waist: " << latest.waist << " cm" << std::endl;
+    // ... etc.
+}

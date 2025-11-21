@@ -153,6 +153,35 @@ std::vector<T> DatabaseManager::executeQuery(const std::string& sql,
     return results;
 }
 
+// Parameterized query method implementation
+template<typename T>
+std::vector<T> DatabaseManager::executeQuery(const std::string& sql, 
+                                           std::function<T(sqlite3_stmt*)> rowMapper,
+                                           int parameter) {
+    std::vector<T> results;
+    sqlite3_stmt* stmt;
+    
+    int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return results;
+    }
+    
+    // Bind the parameter
+    sqlite3_bind_int(stmt, 1, parameter);
+    
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        results.push_back(rowMapper(stmt));
+    }
+    
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
+    }
+    
+    sqlite3_finalize(stmt);
+    return results;
+}
+
 bool DatabaseManager::executeNonQuery(const std::string& sql) {
     char* errorMessage = nullptr;
     int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errorMessage);
@@ -165,9 +194,9 @@ bool DatabaseManager::executeNonQuery(const std::string& sql) {
     
     return true;
 }
+
 #pragma region <Queries>
 // Specific query implementations
-
 
 std::vector<std::string> DatabaseManager::getAllUserNames() {
     return executeQuery<std::string>(
@@ -206,6 +235,94 @@ bool DatabaseManager::createUser(const std::string& name, double weight, double 
                      std::to_string(height) + ");";
     return executeNonQuery(sql);
 }
+
+// New method implementations
+UserMeasurements DatabaseManager::getLatestUserMeasurements(int userId) {
+    std::string sql = R"(
+        SELECT 
+            uh.arms, uh.calves, uh.neck, uh.thighs, uh.chest, 
+            uh.waist, uh.hips, uh.forearms, uh.weight, uh.date
+        FROM user_history uh
+        WHERE uh.user_id = ?
+        ORDER BY uh.date DESC
+        LIMIT 1;
+    )";
+    
+    auto results = executeQuery<UserMeasurements>(
+        sql,
+        [](sqlite3_stmt* stmt) -> UserMeasurements {
+            UserMeasurements measurements;
+            
+            // All measurements - if NULL, will remain 0.0 (default)
+            measurements.arms = sqlite3_column_double(stmt, 0);
+            measurements.calves = sqlite3_column_double(stmt, 1);
+            measurements.neck = sqlite3_column_double(stmt, 2);
+            measurements.thighs = sqlite3_column_double(stmt, 3);
+            measurements.chest = sqlite3_column_double(stmt, 4);
+            measurements.waist = sqlite3_column_double(stmt, 5);
+            measurements.hips = sqlite3_column_double(stmt, 6);
+            measurements.forearms = sqlite3_column_double(stmt, 7);
+            measurements.weight = sqlite3_column_double(stmt, 8);
+            
+            const char* date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
+            if (date) {
+                measurements.date = std::string(date);
+            }
+            
+            return measurements;
+        },
+        userId
+    );
+    
+    if (results.empty()) {
+        return UserMeasurements(); // Returns all zeros
+    }
+    
+    return results[0];
+}
+
+bool DatabaseManager::insertUserMeasurements(const std::string& userName, 
+                                           const UserMeasurements& measurements) {
+    // First, get user ID
+    int userId = getUserIdByName(userName);
+    if (userId == -1) {
+        std::cerr << "User not found: " << userName << std::endl;
+        return false;
+    }
+    
+    // Insert measurements
+    std::string insertSql = 
+        "INSERT INTO user_history (user_id, date, weight, arms, calves, neck, thighs, chest, waist, hips, forearms) "
+        "VALUES (" + std::to_string(userId) + ", '" + measurements.date + "', " +
+        std::to_string(measurements.weight) + ", " +
+        std::to_string(measurements.arms) + ", " +
+        std::to_string(measurements.calves) + ", " +
+        std::to_string(measurements.neck) + ", " +
+        std::to_string(measurements.thighs) + ", " +
+        std::to_string(measurements.chest) + ", " +
+        std::to_string(measurements.waist) + ", " +
+        std::to_string(measurements.hips) + ", " +
+        std::to_string(measurements.forearms) + ");";
+    
+    return executeNonQuery(insertSql);
+}
+
+int DatabaseManager::getUserIdByName(const std::string& userName) {
+    std::string sql = "SELECT id FROM user WHERE name = '" + userName + "';";
+    
+    auto userIds = executeQuery<int>(
+        sql,
+        [](sqlite3_stmt* stmt) -> int {
+            return sqlite3_column_int(stmt, 0);
+        }
+    );
+    
+    if (userIds.empty()) {
+        return -1;
+    }
+    
+    return userIds[0];
+}
 #pragma endregion <Queries>
 
 // Explicit template instantiation for common types
@@ -213,3 +330,7 @@ template std::vector<std::string> DatabaseManager::executeQuery<std::string>(
     const std::string&, std::function<std::string(sqlite3_stmt*)>);
 template std::vector<int> DatabaseManager::executeQuery<int>(
     const std::string&, std::function<int(sqlite3_stmt*)>);
+template std::vector<UserMeasurements> DatabaseManager::executeQuery<UserMeasurements>(
+    const std::string&, std::function<UserMeasurements(sqlite3_stmt*)>);
+template std::vector<UserMeasurements> DatabaseManager::executeQuery<UserMeasurements>(
+    const std::string&, std::function<UserMeasurements(sqlite3_stmt*)>, int);

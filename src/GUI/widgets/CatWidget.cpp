@@ -16,8 +16,6 @@ CatWidget::CatWidget(RenderContext* context,
                     "idle",
                     layer, parent),
 
-      idleTimeDist(0.5f, 1.5f),
-      walkTimeDist(1.0f, 2.0f),
       lrDist(0, 1),
       tbDist(0, 1),
       actionPickDist(0, 1),
@@ -25,11 +23,9 @@ CatWidget::CatWidget(RenderContext* context,
       state(State::Idle),
       dir(Direction::LB),
 
-      remainingLoops(0),
+      remainingLoops(6), // idle = fixed 6 loops
       lastFrameIndex(0),
-
-      stateTimer(0.0f),
-      stateDuration(idleTimeDist(rng))
+      singleFrameAccum(0.0f)
 {
     rng.seed(std::chrono::high_resolution_clock::now()
              .time_since_epoch().count());
@@ -40,60 +36,67 @@ CatWidget::CatWidget(RenderContext* context,
 
 void CatWidget::update(float deltaTime) {
 
-    stateTimer += deltaTime;
-
     std::string anim = getCurrentAnimationName();
-    int frame = getCurrentFrameIndex();
-    int totalFrames = getAnimationFrameCount(anim);
+    int currentFrame = getCurrentFrameIndex();
+    int frameCount = getAnimationFrameCount(anim);
 
-    // ---------------------------
-    // ACTION STATES (meow/sleep)
-    // ---------------------------
-    if (state == State::Meowing || state == State::Sleeping) {
+    bool loopCompleted = false;
 
-        // Detect loop completion: frame wrapped from lastFrameIndex > currentFrame
-        if (frame < lastFrameIndex) {
-            remainingLoops--;
-            if (remainingLoops <= 0) {
-                changeState(State::Idle);
+    // ------------------------------------
+    // LOOP DETECTION LOGIC
+    // ------------------------------------
+    if (frameCount > 1) {
+        // Multi-frame animation: loop occurs when frame index resets (wraps)
+        if (currentFrame < lastFrameIndex) {
+            loopCompleted = true;
+        }
+    } else {
+        // Single-frame animation (idle)
+        singleFrameAccum += deltaTime;
+        if (singleFrameAccum >= getFrameTime()) {
+            singleFrameAccum -= getFrameTime();
+            loopCompleted = true;
+        }
+    }
+
+    // ------------------------------------
+    // HANDLE LOOP COMPLETION
+    // ------------------------------------
+    if (loopCompleted) {
+        remainingLoops--;
+
+        if (remainingLoops <= 0) {
+
+            switch (state) {
+
+                case State::Idle:
+                    pickRandomDirection();
+                    changeState(State::Walking);
+                    break;
+
+                case State::Walking:
+                    if (actionPickDist(rng) == 0)
+                        changeState(State::Meowing);
+                    else
+                        changeState(State::Sleeping);
+                    break;
+
+                case State::Meowing:
+                case State::Sleeping:
+                    changeState(State::Idle);
+                    break;
             }
         }
-
-        lastFrameIndex = frame;
-
-        SpriteElement::update(deltaTime);
-        return;
     }
 
-    // ---------------------------
-    // IDLE & WALK based on timers
-    // ---------------------------
-    if (stateTimer >= stateDuration) {
-        switch (state) {
-            case State::Idle:
-                pickRandomDirection();
-                changeState(State::Walking);
-                break;
+    lastFrameIndex = currentFrame;
 
-            case State::Walking:
-                if (actionPickDist(rng) == 0)
-                    changeState(State::Meowing);
-                else
-                    changeState(State::Sleeping);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    lastFrameIndex = frame;
     SpriteElement::update(deltaTime);
 }
 
 void CatWidget::pickRandomDirection() {
-    int lr = lrDist(rng); // left/right
-    int tb = tbDist(rng); // top/bottom
+    int lr = lrDist(rng);
+    int tb = tbDist(rng);
 
     if (lr == 0)
         dir = (tb == 0) ? Direction::LB : Direction::LT;
@@ -103,35 +106,35 @@ void CatWidget::pickRandomDirection() {
 
 void CatWidget::changeState(State newState) {
     state = newState;
-    stateTimer = 0.0f;
+    singleFrameAccum = 0.0f;
 
     switch (state) {
 
         case State::Idle:
-            stateDuration = idleTimeDist(rng);
+            remainingLoops = 6;              // EXACTLY 6 loops
             play(animIdle(), true);
-            remainingLoops = 0;
             lastFrameIndex = 0;
             break;
 
-        case State::Walking:
-            stateDuration = walkTimeDist(rng);
+        case State::Walking: {
+            std::uniform_int_distribution<int> loops(3, 5);
+            remainingLoops = loops(rng);     // 3–5 loops
             play(animWalk(dir), true);
-            remainingLoops = 0;
             lastFrameIndex = 0;
             break;
+        }
 
         case State::Sleeping: {
-            std::uniform_int_distribution<int> loopsDist(2, 5);
-            remainingLoops = loopsDist(rng);
+            std::uniform_int_distribution<int> loops(2, 5);
+            remainingLoops = loops(rng);     // 2–5 loops
             play(animSleep(dir), true);
             lastFrameIndex = 0;
             break;
         }
 
         case State::Meowing: {
-            std::uniform_int_distribution<int> loopsDist(1, 3);
-            remainingLoops = loopsDist(rng);
+            std::uniform_int_distribution<int> loops(1, 3);
+            remainingLoops = loops(rng);     // 1–3 loops
             play(animMeow(dir), true);
             lastFrameIndex = 0;
             break;

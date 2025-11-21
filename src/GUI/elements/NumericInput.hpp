@@ -20,6 +20,7 @@ private:
     int fontSize;
     bool hovered;
     bool wrapText;
+    bool vertical;  // true = vertical layout (default), false = horizontal layout
     std::function<void()> onPressCallback;
     
     // Numeric input specific fields
@@ -43,7 +44,8 @@ public:
                  int layer = 0, 
                  Menu* parent = nullptr,
                  HorizontalAlignment promptAlign = LEFT,
-                 HorizontalAlignment valueAlign = RIGHT);
+                 HorizontalAlignment valueAlign = RIGHT,
+                 bool vertical = true);
     
     ~NumericInput();
     
@@ -72,6 +74,10 @@ public:
     void setWrapText(bool wrap);
     bool isWrapText() const { return wrapText; }
     
+    // Layout management
+    void setVertical(bool vert) { vertical = vert; updateTextFields(); }
+    bool isVertical() const { return vertical; }
+    
     // Callback management
     void setOnPress(std::function<void()> callback) { onPressCallback = callback; }
     
@@ -87,6 +93,8 @@ private:
     void incrementValue();
     void decrementValue();
     void clampValue();
+    void renderVertical();
+    void renderHorizontal();
     
     // Convert SDL_Color to glm::vec4
     glm::vec4 colorToVec4(const SDL_Color& color) const {

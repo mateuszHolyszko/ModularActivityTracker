@@ -2,6 +2,7 @@
 #define InitMenu_HPP
 
 #include "../../Menu.hpp"
+#include "EditUserMenu.hpp"
 #include "../../elements/Button.hpp"
 #include "../../elements/Label.hpp"
 #include "../../elements/DropDown.hpp"

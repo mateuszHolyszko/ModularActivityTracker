@@ -54,6 +54,8 @@ public:
     void setFrameTime(float time) { frameTime = time; }
     void setShowBorder(bool show) { showBorder = show; }
 
+    float getFrameTime() const { return frameTime; }
+
     // Getters for current animation state
     std::string getCurrentAnimationName() const { return currentAnimation; }
     int getCurrentFrameIndex() const { return currentFrame; }

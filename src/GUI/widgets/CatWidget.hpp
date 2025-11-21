@@ -19,12 +19,8 @@ public:
     void update(float deltaTime) override;
 
 private:
-    // RNG
     std::mt19937 rng;
 
-    // Randomizers
-    std::uniform_real_distribution<float> idleTimeDist;
-    std::uniform_real_distribution<float> walkTimeDist;
     std::uniform_int_distribution<int> lrDist;
     std::uniform_int_distribution<int> tbDist;
     std::uniform_int_distribution<int> actionPickDist;
@@ -32,19 +28,14 @@ private:
     State state;
     Direction dir;
 
-    // Loop tracking for actions
     int remainingLoops;
     int lastFrameIndex;
 
-    // Timer for idle & walking
-    float stateTimer;
-    float stateDuration;
+    float singleFrameAccum;  // <-- important for 1-frame idle loop detection
 
-    // State-changing helpers
     void changeState(State newState);
     void pickRandomDirection();
 
-    // Animation helpers
     std::string animWalk(Direction d) const;
     std::string animSleep(Direction d) const;
     std::string animMeow(Direction d) const;

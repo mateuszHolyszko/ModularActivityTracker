@@ -159,10 +159,10 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
         WorkThread* worker = AppGlobals::get<WorkThread*>("WorkerThread");
         DatabaseManager* dbManager = AppGlobals::get<DatabaseManager*>("DatabaseManager");
        // Create the menu dynamically
-        auto startMenu = std::make_unique<StartMenu>(context, worker, dbManager);
-        startMenu->init();
+        auto overViewMenu = std::make_unique<OverviewMenu>(context, worker, dbManager);
+        overViewMenu->init(); 
 
-        context->setCurrentMenu(startMenu.release()); // Release ownership to context
+        context->setCurrentMenu(overViewMenu.release()); // Release ownership to context
     });
 
     elements.push_back(std::move(Menu1Button));

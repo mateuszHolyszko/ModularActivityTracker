@@ -122,9 +122,14 @@ void InitMenu::init() {
 }
 
 void InitMenu::onEditUserButton() {
-    std::cerr << "Test Edit button" << std::endl;
-    renderContext->addNotification("Test Edit button");
+    //std::cerr << "Test Edit button" << std::endl;
+    //renderContext->addNotification("Test Edit button");
+    auto editUserMenu = std::make_unique<EditUserMenu>(getRenderContext(), worker, dbManager,this, AppGlobals::get<std::string>("CurrentUser"));
+    // before init load async data
+    editUserMenu->loadAsyncData();
+    editUserMenu->init(); 
 
+    getRenderContext()->setCurrentMenu(editUserMenu.release()); // Release ownership to context
 }
 
 // Menu update override
