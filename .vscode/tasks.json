@@ -31,6 +31,7 @@
                 "src/GUI/elements/DropDown.cpp",
                 "src/GUI/elements/NumericInput.cpp",
                 "src/GUI/elements/ImageElement.cpp",
+                "src/GUI/elements/Plotter2dElement.cpp",
                 "src/GUI/panels/ClockPanel.cpp",
                 "src/GUI/elements/SpriteElement.cpp",
                 "src/GUI/widgets/CatWidget.cpp",

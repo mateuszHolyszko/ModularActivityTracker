@@ -2,6 +2,8 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 #include "../../3D/Model3D.hpp"
 #include "../../3D/ShaderProgram.hpp"
 #include "../../NotificationSystem.hpp"
@@ -57,7 +59,7 @@ void EditUserMenu::init() {
         boxMenuLabel.x, boxMenuLabel.y, boxMenuLabel.width, boxMenuLabel.height,
         "Edit User > "+user,
         false,  // Show border
-        30,     // Large font
+        34,     // Large font
         2,       // Layer
         nullptr, // parent
         CENTER  // Text alignment - CENTER or RIGHT or LEFT
@@ -195,15 +197,33 @@ void EditUserMenu::init() {
         boxCommitButton.x, boxCommitButton.y, boxCommitButton.width, boxCommitButton.height,
         "Commit",
         true,  // Show border
-        24,    // Medium font
+        22,    // Medium font
         1,      // Layer
         nullptr, // parent
-        CENTER  // Text alignment - CENTER or RIGHT or LEFT
+        LEFT  // Text alignment - CENTER or RIGHT or LEFT
     );
     commitButton->setId("commit_button");
     // Connect button callback
     commitButton->setOnPress([this]() { onCommitButton(); });
+    commitButton->setWrapText(false);
     addElement(std::move(commitButton));
+
+    // ========================
+    // Plotter
+    // ========================
+    std::vector<std::string> testX = {"2024-01-01", "2024-01-05", "2024-01-08","2024-02-21"};
+    std::vector<float> testY = {12.4,21.2,51.1,91.7};
+
+    auto plotter = std::make_unique<Plotter2dElement>(
+        renderContext,
+        boxStats.x,boxStats.y,boxStats.width,boxStats.height,
+        "Test Plot",       // title
+        1,                 // Layer
+        nullptr            // parent
+    );
+    plotter->addPlotLine(testX,testY,"test",glm::vec4(style.text_color.r/255.0f, style.text_color.g/255.0f, style.text_color.b/255.0f, 1));
+    plotter->setId("plotter");
+    addElement(std::move(plotter));
 
     #pragma endregion <Element Definitions>
 
@@ -216,9 +236,86 @@ void EditUserMenu::init() {
 void EditUserMenu::onReturnButton() {
     renderContext->setCurrentMenu(returnMenu);
 }
+
 void EditUserMenu::onCommitButton() {
-    std::cerr << "TODO commit logic" << std::endl;
+    try {
+        // Get current date in YYYY-MM-DD format
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        std::tm tm = *std::localtime(&time_t);
+        
+        std::stringstream dateSS;
+        dateSS << std::put_time(&tm, "%Y-%m-%d");
+        std::string currentDate = dateSS.str();
+
+        // Create UserMeasurements object
+        UserMeasurements newMeasurements;
+        newMeasurements.date = currentDate;
+
+        // Get weight value
+        NumericInput* weightInput = dynamic_cast<NumericInput*>(getElement("weight_input"));
+        if (weightInput) {
+            newMeasurements.weight = weightInput->getValue();
+        }
+
+        // Get all measurement values
+        for (const std::string& measurement : Constants::MEASUREMENTS) {
+            NumericInput* input = dynamic_cast<NumericInput*>(getElement(measurement + "_input"));
+            if (input) {
+                float value = input->getValue();
+                
+                // Map measurement names to struct fields
+                if (measurement == "arms") newMeasurements.arms = value;
+                else if (measurement == "calves") newMeasurements.calves = value;
+                else if (measurement == "neck") newMeasurements.neck = value;
+                else if (measurement == "thighs") newMeasurements.thighs = value;
+                else if (measurement == "chest") newMeasurements.chest = value;
+                else if (measurement == "waist") newMeasurements.waist = value;
+                else if (measurement == "hips") newMeasurements.hips = value;
+                else if (measurement == "forearms") newMeasurements.forearms = value;
+            }
+        }
+
+        
+        bool success = dbManager->insertUserMeasurements(this->user, newMeasurements);
+        
+        // Optionally update the latest measurements cache
+        int userId = dbManager->getUserIdByName(this->user);
+        if (userId != -1) {
+            this->latest = dbManager->getLatestUserMeasurements(userId);
+        }
+           
+        // Show immediate feedback to user
+        renderContext->addNotification("Updated for > " + user);
+        
+        // Optional: Update the previous labels to show the newly committed values
+        updatePreviousLabels();
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error in onCommitButton: " << e.what() << std::endl;
+        renderContext->addNotification("Error on commit");
+    }
 }
+
+void EditUserMenu::updatePreviousLabels() {
+    // Update all previous measurement labels with current input values
+    for (const std::string& measurement : Constants::MEASUREMENTS) {
+        Label* label = dynamic_cast<Label*>(getElement(measurement + "_label"));
+        NumericInput* input = dynamic_cast<NumericInput*>(getElement(measurement + "_input"));
+        
+        if (label && input) {
+            float value = input->getValue();
+            label->setText("Prev | " + formatFloat(value));
+        }
+    }
+    
+    // Also update weight in the latest cache for consistency
+    NumericInput* weightInput = dynamic_cast<NumericInput*>(getElement("weight_input"));
+    if (weightInput) {
+        latest.weight = weightInput->getValue();
+    }
+}
+
 #pragma endregion <overrides>
 
 // Menu update override

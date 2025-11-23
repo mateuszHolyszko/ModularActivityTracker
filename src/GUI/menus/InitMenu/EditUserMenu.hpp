@@ -7,6 +7,7 @@
 #include "../../elements/DropDown.hpp"
 #include "../../elements/NumericInput.hpp"
 #include "../../elements/ViewportElement.hpp"
+#include "../../elements/Plotter2dElement.hpp"
 #include "../../WorkThread.hpp"  
 #include "../InputMenus/InputKeyboardMenu.hpp"
 #include "../InputMenus/SelectInputMenu.hpp"
@@ -49,6 +50,8 @@ private:
         ss << std::fixed << std::setprecision(2) << value;
         return ss.str();
     }
+    void updatePreviousLabels();
+    
     void onReturnButton();
     void onCommitButton();
 };
