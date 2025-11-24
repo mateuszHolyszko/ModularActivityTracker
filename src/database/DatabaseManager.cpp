@@ -1,5 +1,6 @@
 #include "DatabaseManager.hpp"
 #include <iostream>
+#include <ctime>
 
 DatabaseManager::DatabaseManager() : db(nullptr) {}
 
@@ -322,6 +323,81 @@ int DatabaseManager::getUserIdByName(const std::string& userName) {
     }
     
     return userIds[0];
+}
+
+bool DatabaseManager::getUserHistory(int userId, const std::string& measurement, int weeksToQuery, 
+                                   std::vector<std::string>& dates, std::vector<float>& values) {
+    // Clear output vectors
+    dates.clear();
+    values.clear();
+    
+    // Get the column name for the measurement
+    std::string columnName = getColumnNameForMeasurement(measurement);
+    if (columnName.empty()) {
+        std::cerr << "Invalid measurement: " << measurement << std::endl;
+        return false;
+    }
+    
+    // Calculate the date cutoff (current date minus weeksToQuery)
+    std::time_t now = std::time(nullptr);
+    std::tm* tm = std::localtime(&now);
+    tm->tm_mday -= weeksToQuery * 7; // Subtract weeks in days
+    std::mktime(tm); // Normalize the date
+    
+    char cutoffDate[11]; // YYYY-MM-DD + null terminator
+    std::strftime(cutoffDate, sizeof(cutoffDate), "%Y-%m-%d", tm);
+    
+    // Build the SQL query
+    std::string sql = "SELECT date, " + columnName + 
+                     " FROM user_history WHERE user_id = ? AND date >= ? AND " + 
+                     columnName + " IS NOT NULL ORDER BY date ASC";
+    
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    // Bind parameters
+    sqlite3_bind_int(stmt, 1, userId);
+    sqlite3_bind_text(stmt, 2, cutoffDate, -1, SQLITE_STATIC);
+    
+    // Execute query and populate vectors
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        // Get date
+        const char* date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        if (date) {
+            dates.push_back(std::string(date));
+        }
+        
+        // Get measurement value
+        float value = sqlite3_column_double(stmt, 1);
+        values.push_back(value);
+    }
+    
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+    
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+std::string DatabaseManager::getColumnNameForMeasurement(const std::string& measurement) {
+    // Map measurement names to database column names
+    if (measurement == "arms") return "arms";
+    else if (measurement == "calves") return "calves";
+    else if (measurement == "neck") return "neck";
+    else if (measurement == "thighs") return "thighs";
+    else if (measurement == "chest") return "chest";
+    else if (measurement == "waist") return "waist";
+    else if (measurement == "hips") return "hips";
+    else if (measurement == "forearms") return "forearms";
+    else if (measurement == "weight") return "weight";
+    else return ""; // Invalid measurement
 }
 #pragma endregion <Queries>
 

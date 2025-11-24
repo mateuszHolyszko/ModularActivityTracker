@@ -308,6 +308,11 @@ void NumericInput::setValue(float newValue) {
     clampValue();
     updateValueString();
     updateTextFields();
+    
+    // Call the input callback if value changed
+    if (onInputCallback) {
+        onInputCallback(value);
+    }
 }
 
 void NumericInput::setRange(float newMin, float newMax) {
@@ -339,17 +344,29 @@ void NumericInput::setIsActive(bool active) {
 }
 
 void NumericInput::incrementValue() {
+    float oldValue = value;
     value += stepValue;
     clampValue();
     updateValueString();
     updateTextFields();
+    
+    // Call the input callback if value actually changed
+    if (oldValue != value && onInputCallback) {
+        onInputCallback(value);
+    }
 }
 
 void NumericInput::decrementValue() {
+    float oldValue = value;
     value -= stepValue;
     clampValue();
     updateValueString();
     updateTextFields();
+    
+    // Call the input callback if value actually changed
+    if (oldValue != value && onInputCallback) {
+        onInputCallback(value);
+    }
 }
 
 void NumericInput::clampValue() {

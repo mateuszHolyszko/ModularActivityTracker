@@ -26,6 +26,11 @@ private:
     InitMenu* returnMenu;
     std::string user;
     UserMeasurements latest;
+    
+    // Plotter query fields
+    std::string plotterQueryMeasurement;
+    int plotterQueryWeeks;
+    
 public:
     EditUserMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr, InitMenu* returnMenu, const std::string& user);
     void init() override;
@@ -51,6 +56,7 @@ private:
         return ss.str();
     }
     void updatePreviousLabels();
+    void updatePlotter();
     
     void onReturnButton();
     void onCommitButton();

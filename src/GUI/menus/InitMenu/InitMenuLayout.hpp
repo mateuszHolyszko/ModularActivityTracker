@@ -11,4 +11,5 @@ static const std::unordered_map<std::string, Box> layout = {
     {"Meta_Info", { 180, 10, 230, 110 } },
     {"SelectUser", { 0, 370, 200, 40 } },
     {"EditButton", { 210, 370, 60, 40 } },
+    {"SelectUserPrompt", { 0, 320, 270, 40 } },
 };

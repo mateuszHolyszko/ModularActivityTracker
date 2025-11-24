@@ -22,6 +22,7 @@ private:
     bool wrapText;
     bool vertical;  // true = vertical layout (default), false = horizontal layout
     std::function<void()> onPressCallback;
+    std::function<void(float)> onInputCallback;  // Called when value changes
     
     // Numeric input specific fields
     bool isActive;
@@ -80,6 +81,7 @@ public:
     
     // Callback management
     void setOnPress(std::function<void()> callback) { onPressCallback = callback; }
+    void setOnInput(std::function<void(float)> callback) { onInputCallback = callback; }
     
     // State management
     bool isHovered() const { return hovered; }

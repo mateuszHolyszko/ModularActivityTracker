@@ -36,6 +36,7 @@ void InitMenu::init() {
     const Box& boxLogo = layout.at("MAT_Logo");  
     const Box& boxMeta = layout.at("Meta_Info");
     const Box& boxSelectUsr = layout.at("SelectUser");
+    const Box& boxSelectUsrPrompt = layout.at("SelectUserPrompt");
     const Box& boxEditButton = layout.at("EditButton");
 
     #pragma region <Element Definitions>
@@ -66,6 +67,22 @@ void InitMenu::init() {
     metaLabel->setWrapText(false);
     addElement(std::move(metaLabel));
 
+    // Select user dropdown prompt // =================================
+
+     auto selectUserPrompt = std::make_unique<Label>(
+        renderContext,  // Use renderContext instead of context
+        boxSelectUsrPrompt.x, boxSelectUsrPrompt.y, boxSelectUsrPrompt.width, boxSelectUsrPrompt.height,
+        "Select User: ",
+        false,  // Show border
+        34,     // Large font
+        1,       // Layer
+        nullptr, // parent
+        LEFT  // Text alignment - CENTER or RIGHT or LEFT
+    );
+    selectUserPrompt->setId("selectUserPrompt_label");
+    selectUserPrompt->setWrapText(false);
+    addElement(std::move(selectUserPrompt));
+
     // Select user dropdown // =================================
     auto usersDropDown = std::make_unique<DropDown>(
         renderContext,
@@ -73,7 +90,7 @@ void InitMenu::init() {
         "Select User",  // Initial text
         true,             // Show border
         24,               // Font size
-        2,                // Layer
+        3,                // Layer
         nullptr,          // Parent
         CENTER           // Text alignment
     );

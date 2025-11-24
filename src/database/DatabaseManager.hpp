@@ -50,10 +50,17 @@ public:
     UserMeasurements getLatestUserMeasurements(int userId);
     bool insertUserMeasurements(const std::string& userName, const UserMeasurements& measurements);
     int getUserIdByName(const std::string& userName);
+    
+    // History query method
+    bool getUserHistory(int userId, const std::string& measurement, int weeksToQuery, 
+                       std::vector<std::string>& dates, std::vector<float>& values);
 
 private:
     sqlite3* db;
     bool createTables();
+    
+    // Helper method to map measurement names to column names
+    std::string getColumnNameForMeasurement(const std::string& measurement);
 };
 
 #endif
