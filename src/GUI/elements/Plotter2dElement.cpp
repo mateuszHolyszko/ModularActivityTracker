@@ -57,8 +57,6 @@ void Plotter2dElement::clearPlotLines() {
     if (autoScale) {
         xMin = 0.0f;
         xMax = 1.0f;
-        yMin = 0.0f;
-        yMax = 1.0f;
     }
 }
 
@@ -79,31 +77,45 @@ void Plotter2dElement::setMargins(int left, int right, int top, int bottom) {
 void Plotter2dElement::calculateDataRange() {
     if (plotLines.empty()) return;
 
+    // Calculate X range from all plot lines
     xMin = std::numeric_limits<float>::max();
     xMax = std::numeric_limits<float>::lowest();
-    yMin = std::numeric_limits<float>::max();
-    yMax = std::numeric_limits<float>::lowest();
 
     for (const auto& line : plotLines) {
         for (float v : line.xPoints) {
             xMin = std::min(xMin, v);
             xMax = std::max(xMax, v);
         }
+    }
+
+    float xPad = (xMax - xMin) * 0.05f;
+    if (xPad == 0) xPad = 0.5f;
+
+    xMin -= xPad;
+    xMax += xPad;
+
+    // Calculate individual Y scales for each plot line
+    calculateIndividualScales();
+}
+
+void Plotter2dElement::calculateIndividualScales() {
+    for (auto& line : plotLines) {
+        if (line.yPoints.empty()) continue;
+
+        float yMin = std::numeric_limits<float>::max();
+        float yMax = std::numeric_limits<float>::lowest();
+
         for (float v : line.yPoints) {
             yMin = std::min(yMin, v);
             yMax = std::max(yMax, v);
         }
+
+        float yPad = (yMax - yMin) * 0.05f;
+        if (yPad == 0) yPad = 0.5f;
+
+        line.yMin = yMin - yPad;
+        line.yMax = yMax + yPad;
     }
-
-    float xPad = (xMax - xMin) * 0.05f;
-    float yPad = (yMax - yMin) * 0.05f;
-    if (xPad == 0) xPad = 0.5f;
-    if (yPad == 0) yPad = 0.5f;
-
-    xMin -= xPad;
-    xMax += xPad;
-    yMin -= yPad;
-    yMax += yPad;
 }
 
 float Plotter2dElement::mapX(float dataX) const {
@@ -112,10 +124,10 @@ float Plotter2dElement::mapX(float dataX) const {
     return plotX + (dataX - xMin) / (xMax - xMin) * plotW;
 }
 
-float Plotter2dElement::mapY(float dataY) const {
+float Plotter2dElement::mapY(float dataY, const PlotLine& line) const {
     float plotY = y + marginTop;
     float plotH = height - marginTop - marginBottom;
-    return plotY + plotH - (dataY - yMin) / (yMax - yMin) * plotH;
+    return plotY + plotH - (dataY - line.yMin) / (line.yMax - line.yMin) * plotH;
 }
 
 void Plotter2dElement::render() {
@@ -197,25 +209,29 @@ void Plotter2dElement::renderAxes() {
     yAxis.lineWidth = 2.0f;
     renderContext->graphicQueue.push_back(yAxis);
 
-    // NO X LABELS HERE — removed interpolation
+    // Render Y-axis labels for each plot line in its color
+    float fontSize = 8.0f;
+    
+    for (size_t lineIdx = 0; lineIdx < plotLines.size(); ++lineIdx) {
+        const auto& line = plotLines[lineIdx];
+        
+        for (int i = 0; i <= yGridLines; ++i) {
+            float val = line.yMax - (line.yMax - line.yMin) * i / yGridLines;
 
-    float fontSize = 12.0f;
+            std::ostringstream ss;
+            ss << std::fixed << std::setprecision(1) << val;
 
-    for (int i = 0; i <= yGridLines; ++i) {
-        float val = yMax - (yMax - yMin) * i / yGridLines;
-
-        std::ostringstream ss;
-        ss << std::fixed << std::setprecision(1) << val;
-
-        TextCommand txt;
-        txt.text = ss.str();
-        txt.font = "";
-        txt.x = x + 25;
-        txt.y = plotY + (plotH * i / yGridLines) + 4;
-        txt.color = textColor;
-        txt.layer = layer + 1;
-        txt.fontSize = fontSize+5;
-        renderContext->textQueue.push_back(txt);
+            TextCommand txt;
+            txt.text = ss.str();
+            txt.font = "";
+            // Offset labels horizontally for multiple plot lines
+            txt.x = x + 15 + (lineIdx * 25);
+            txt.y = plotY + (plotH * i / yGridLines) + 4;
+            txt.color = line.color;  // Use plot line color
+            txt.layer = layer + 1;
+            txt.fontSize = fontSize + 5;
+            renderContext->textQueue.push_back(txt);
+        }
     }
 
     if (!xAxisLabel.empty()) {
@@ -244,7 +260,7 @@ void Plotter2dElement::renderAxes() {
 }
 
 void Plotter2dElement::renderPlotLines() {
-    float baseY = mapY(yMin) + 20; // date label Y position
+    float baseY = y + height - marginBottom + 20; // date label Y position
 
     for (const auto& line : plotLines) {
         size_t n = std::min(line.xPoints.size(), line.yPoints.size());
@@ -254,9 +270,9 @@ void Plotter2dElement::renderPlotLines() {
             GraphicCommand cmd;
             cmd.type = GraphicCommand::LINE;
             cmd.x1 = mapX(line.xPoints[i]);
-            cmd.y1 = mapY(line.yPoints[i]);
+            cmd.y1 = mapY(line.yPoints[i], line);
             cmd.x2 = mapX(line.xPoints[i + 1]);
-            cmd.y2 = mapY(line.yPoints[i + 1]);
+            cmd.y2 = mapY(line.yPoints[i + 1], line);
             cmd.color = line.color;
             cmd.layer = layer + 2;
             cmd.lineWidth = line.lineWidth;
@@ -265,7 +281,7 @@ void Plotter2dElement::renderPlotLines() {
 
         for (size_t i = 0; i < n; ++i) {
             float px = mapX(line.xPoints[i]);
-            float py = mapY(line.yPoints[i]);
+            float py = mapY(line.yPoints[i], line);
 
             GraphicCommand pt;
             pt.type = GraphicCommand::CIRCLE;
@@ -277,18 +293,18 @@ void Plotter2dElement::renderPlotLines() {
             pt.filled = true;
             renderContext->graphicQueue.push_back(pt);
 
-            // --- Draw Y-value label near the point ---
+            // --- Draw Y-value label near the point in plot line color ---
             {
                 TextCommand tval;
                 std::ostringstream ss;
-                ss << std::fixed << std::setprecision(2) << line.yPoints[i];   // format y-value
+                ss << std::fixed << std::setprecision(2) << line.yPoints[i];
                 tval.text = ss.str();
                 tval.font = "";
 
-                tval.x = px - 20;        // a bit to the left of the point
-                tval.y = py - 15;        // up of point, TODO if downtrend + 8, if uptrend - 8
+                tval.x = px - 20;
+                tval.y = py - 15;
 
-                tval.color = textColor;
+                tval.color = line.color;  // Use plot line color
                 tval.layer = layer + 4;
                 tval.fontSize = 15.0f;
 
@@ -358,7 +374,7 @@ void Plotter2dElement::renderTitle() {
     TextCommand txt;
     txt.text = title;
     txt.font = "";
-    txt.x = x + width / 2 - title.length() * 4;
+    txt.x = x;
     txt.y = y + 18;
     txt.color = textColor;
     txt.layer = layer + 1;

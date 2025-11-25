@@ -19,6 +19,10 @@ struct PlotLine {
     std::string label;
     glm::vec4 color;
     float lineWidth = 2.0f;
+    
+    // Individual scale for this plot line
+    float yMin = 0.0f;
+    float yMax = 1.0f;
 };
 
 class Plotter2dElement : public BaseElement {
@@ -38,7 +42,6 @@ private:
     bool autoScale = true;
 
     float xMin = 0.0f, xMax = 1.0f;
-    float yMin = 0.0f, yMax = 1.0f;
 
     int xGridLines = 5;
     int yGridLines = 5;
@@ -81,7 +84,6 @@ public:
     void setShowLegend(bool show) { showLegend = show; }
     void setAutoScale(bool auto_scale) { autoScale = auto_scale; }
     void setXRange(float min, float max) { xMin = min; xMax = max; autoScale = false; }
-    void setYRange(float min, float max) { yMin = min; yMax = max; autoScale = false; }
     void setGridLines(int xLines, int yLines) { xGridLines = xLines; yGridLines = yLines; }
     void setMargins(int left, int right, int top, int bottom);
 
@@ -91,8 +93,9 @@ private:
     float parseDateToDays(const std::string& date) const;
 
     void calculateDataRange();
+    void calculateIndividualScales();
     float mapX(float dataX) const;
-    float mapY(float dataY) const;
+    float mapY(float dataY, const PlotLine& line) const;
 
     void renderBackground();
     void renderGrid();

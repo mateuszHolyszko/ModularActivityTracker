@@ -431,9 +431,9 @@ void EditUserMenu::updatePlotter() {
         
         // Add new plot line
         glm::vec4 colour = glm::vec4(
-            style.getTextColor().r/255.0f,
-            style.getTextColor().g/255.0f,
-            style.getTextColor().b/255.0f,
+            style.getMuscleColor("Chest").r/255.0f,
+            style.getMuscleColor("Chest").g/255.0f,
+            style.getMuscleColor("Chest").b/255.0f,
             1.0f
         );
         
@@ -442,8 +442,25 @@ void EditUserMenu::updatePlotter() {
         if (!displayName.empty()) {
             displayName[0] = std::toupper(displayName[0]);
         }
+        // If its weight querry change colour to textColor
+        if (plotterQueryMeasurement == "weight") {
+            colour = glm::vec4(
+                style.getTextColor().r/255.0f,
+                style.getTextColor().g/255.0f,
+                style.getTextColor().b/255.0f,
+                1.0f
+            );
+        }
         
         plotter->addPlotLine(dates, values, displayName, colour);
+
+        // If query is not weight, add weight alongside for reference
+        if (plotterQueryMeasurement != "weight") {
+            std::vector<std::string> weightDates;
+            std::vector<float> weightValues;
+            dbManager->getUserHistory(userId, "weight", plotterQueryWeeks, weightDates, weightValues);
+            plotter->addPlotLine(weightDates, weightValues, "Weight", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // Light grey for weight
+        } 
         
         // Update plotter title
         plotter->setTitle(displayName + " - Last " + std::to_string(plotterQueryWeeks) + " weeks");
