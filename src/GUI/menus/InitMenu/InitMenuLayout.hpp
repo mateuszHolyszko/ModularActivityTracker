@@ -12,4 +12,5 @@ static const std::unordered_map<std::string, Box> layout = {
     {"SelectUser", { 0, 370, 200, 40 } },
     {"EditButton", { 210, 370, 60, 40 } },
     {"SelectUserPrompt", { 0, 320, 270, 40 } },
+    {"TestScrollPane", { 280, 210, 450, 200 } },
 };

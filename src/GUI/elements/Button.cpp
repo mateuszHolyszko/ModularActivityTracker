@@ -145,8 +145,8 @@ void Button::onPress() {
         onPressCallback();
     } else {
         // Default implementation: print text field and center position
-        int centerX = x + width / 2;
-        int centerY = y + height / 2;
+        int centerX = getAbsoluteCenterX();
+        int centerY = getAbsoluteCenterY();
         std::cout << "Button pressed - Text: '" << text 
                   << "', Center Position: (" << centerX << ", " << centerY << ")" << std::endl;
     }

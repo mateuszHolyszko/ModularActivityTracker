@@ -28,6 +28,8 @@
                 "src/GUI/NotificationSystem.cpp",
                 "src/GUI/menus/InputMenus/InputKeyboardMenu.cpp",
                 "src/GUI/menus/InputMenus/SelectInputMenu.cpp",
+                "src/GUI/ScrollPane.cpp",
+                "src/GUI/widgets/ScrollBarWidget.cpp",
                 "src/GUI/elements/DropDown.cpp",
                 "src/GUI/elements/NumericInput.cpp",
                 "src/GUI/elements/ImageElement.cpp",

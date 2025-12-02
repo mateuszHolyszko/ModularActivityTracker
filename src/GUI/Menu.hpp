@@ -9,12 +9,14 @@
 #include "../RenderContext.hpp"
 #include "WorkThread.hpp"
 #include "../database/DatabaseManager.hpp"
+#include "ScrollPane.hpp"
 
 class Menu {
 protected:
     std::string name;
     BaseElement* current_focus;
     std::vector<std::unique_ptr<BaseElement>> guiElements;
+    std::vector<std::unique_ptr<ScrollPane>> scrollPanes;  // Add scroll panes
     RenderContext* renderContext;
     WorkThread* worker;
     DatabaseManager* dbManager;
@@ -41,6 +43,12 @@ public:
     virtual void removeElement(const std::string& elementId);
     virtual BaseElement* getElement(const std::string& elementId);
     
+    // ScrollPane management
+    virtual ScrollPane* addScrollPane(float displayX, float displayY, float displayWidth, 
+                                      float displayHeight, float virtualWidth, float virtualHeight);
+    virtual ScrollPane* getScrollPane(size_t index);
+    virtual size_t getScrollPaneCount() const { return scrollPanes.size(); }
+    
     // Getters
     virtual const std::string& getName() const { return name; }
     virtual size_t getElementCount() const { return guiElements.size(); }
@@ -51,6 +59,8 @@ public:
 private:
     // Arrow navigation helper method
     void navigate_arrows(int dirX, int dirY);
+    // Helper to check if element is mostly clipped by scroll pane
+    bool isElementMostlyClipped(BaseElement* element) const;
     double navigationConeAngleDegrees = 60.0;
 };
 

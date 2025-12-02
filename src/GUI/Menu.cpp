@@ -32,6 +32,12 @@ void Menu::render() {
     
     // Note: The actual rendering to texture is done outside this class
     // by calling renderer.renderToTexture(renderContext->textQueue, renderContext->graphicQueue)
+
+    // Render scroll panes
+    for (auto& pane : scrollPanes) {
+        pane->update();  // Render pane content to its texture
+        pane->compositeToMain(*renderContext, 480);  // TODO: Pass actual screen height
+    }
 }
 
 void Menu::handleEvent(const SDL_Event& event) {
@@ -75,6 +81,37 @@ void Menu::handleEvent(const SDL_Event& event) {
                     break;
             }
         }
+
+        // Handle scrolling with ',' and '.'
+        // TODO: check what scrolling pane is closest to currentFocus to determine which one to scroll
+        
+        if (event.type == SDL_KEYDOWN && !eventConsumed) {
+            // Scroll step size (adjust as needed)
+            const float scrollStep = 10.0f;
+            
+            switch (event.key.keysym.sym) {
+                case SDLK_COMMA:  // ',' - scroll up/left
+                    // Scroll all scroll panes
+                    for (auto& pane : scrollPanes) {
+                        float currentX, currentY;
+                        pane->getScrollOffset(currentX, currentY);
+                        pane->setScrollOffset(currentX, currentY - scrollStep);
+                        //pane->update();
+                    }
+                    break;
+                    
+                case SDLK_PERIOD:  // '.' - scroll down/right
+                    // Scroll all scroll panes
+                    for (auto& pane : scrollPanes) {
+                        float currentX, currentY;
+                        pane->getScrollOffset(currentX, currentY);
+                        pane->setScrollOffset(currentX, currentY + scrollStep);
+                        //pane->update();
+                    }
+                    break;
+            }
+        }
+
     }
 }
 
@@ -199,6 +236,8 @@ void Menu::navigate_arrows(int dirX, int dirY) {
         for (auto& element : guiElements) {
             if (!element->isSelectable() || !element->isEnabled() || !element->isVisible()) continue;
             if (element.get() == current_focus) continue;  // Skip current focus
+
+            // Skip elements that are mostly clipped by scroll pane viewport
             
             // Get candidate center
             auto [candX, candY] = element->getAbsoluteCenter();
@@ -238,6 +277,8 @@ void Menu::navigate_arrows(int dirX, int dirY) {
         setFocus(bestCandidate);
     }
 }
+
+
 #pragma endregion <Navigation>
 
 void Menu::update(float deltaTime) {
@@ -307,3 +348,26 @@ BaseElement* Menu::getElement(const std::string& elementId) {
     
     return (it != guiElements.end()) ? it->get() : nullptr;
 }
+
+#pragma region <ScrollPane>
+
+ScrollPane* Menu::addScrollPane(float displayX, float displayY, float displayWidth, 
+                                float displayHeight, float virtualWidth, float virtualHeight) {
+    auto pane = std::make_unique<ScrollPane>(displayX, displayY, displayWidth, displayHeight, 
+                                             virtualWidth, virtualHeight);
+    if (!pane->init()) {
+        return nullptr;
+    }
+    ScrollPane* panePtr = pane.get();
+    scrollPanes.push_back(std::move(pane));
+    return panePtr;
+}
+
+ScrollPane* Menu::getScrollPane(size_t index) {
+    if (index < scrollPanes.size()) {
+        return scrollPanes[index].get();
+    }
+    return nullptr;
+}
+
+#pragma endregion <ScrollPane>

@@ -13,12 +13,16 @@
 #include "../InputMenus/SelectInputMenu.hpp"
 #include "../../../ImageManager.hpp"
 #include "../../elements/ImageElement.hpp"
+#include "../../ScrollPane.hpp"
+#include "../../widgets/ScrollBarWidget.hpp"
 
 class InitMenu : public Menu {
 private:    
     std::unique_ptr<SelectInputMenu> selectMenu; 
     std::string selectText; // New for select input
     ImageManager imageManager;  // Create instance as member variable
+    ScrollPane* testScrollPane = nullptr;
+    std::unique_ptr<ScrollBarWidget> scrollBarWidget;
 public:
     InitMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr);
     void init() override;

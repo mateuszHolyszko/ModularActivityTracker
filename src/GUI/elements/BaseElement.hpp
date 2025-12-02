@@ -11,6 +11,7 @@ class TextRenderer;
 class SimplesRenderer;
 class RenderContext;
 class Menu;
+class ScrollPane; // NEW
 
 class BaseElement {
 protected:
@@ -24,6 +25,8 @@ protected:
     int layer;
     Menu* parent;
     std::string id;
+
+    ScrollPane* scrollPane = nullptr; // NEW: optional scroll pane owner
 
 public:
     BaseElement(RenderContext* context,
@@ -54,70 +57,35 @@ public:
     virtual void setParent(Menu* newParent) { parent = newParent; }
     virtual void setId(const std::string& newId) { id = newId; }
 
+    // NEW: scroll pane accessors
+    virtual void setScrollPane(ScrollPane* pane) { scrollPane = pane; }
+    virtual ScrollPane* getScrollPane() const { return scrollPane; }
+
     // Update method (not pure virtual, can be overridden)
     std::function<void(float)> onUpdate = [](float) {};  // there is also virtual update method onUpdate exist so i can assign lambda directly to a specyfic element instance
 
-    // Center coordinates method (relative to parent)
-    virtual std::pair<int, int> getCenter() const {
-        return {x + width / 2, y + height / 2};
-    }
-    
-    virtual int getCenterX() const { return x + width / 2; }
-    virtual int getCenterY() const { return y + height / 2; }
+    // Center coordinates method (relative to parent or taking scroll pane into account)
+    virtual std::pair<int, int> getCenter() const;
+    virtual int getCenterX() const;
+    virtual int getCenterY() const;
 
     // Absolute center coordinates (on screen)
-    virtual std::pair<int, int> getAbsoluteCenter() const {
-        auto absPos = getAbsolutePosition();
-        return {absPos.first + width / 2, absPos.second + height / 2};
-    }
-    
-    virtual int getAbsoluteCenterX() const {
-        return getAbsolutePosition().first + width / 2;
-    }
-    
-    virtual int getAbsoluteCenterY() const {
-        return getAbsolutePosition().second + height / 2;
-    }
+    virtual std::pair<int, int> getAbsoluteCenter() const;
+    virtual int getAbsoluteCenterX() const;
+    virtual int getAbsoluteCenterY() const;
 
     // Absolute position methods
-    virtual std::pair<int, int> getAbsolutePosition() const {
-        return {x, y}; // For now, no parent offset since im workin on absolute coords
-    }
-    
-    virtual int getAbsoluteX() const {
-        return getAbsolutePosition().first;
-    }
-    
-    virtual int getAbsoluteY() const {
-        return getAbsolutePosition().second;
-    }
+    virtual std::pair<int, int> getAbsolutePosition() const;
+    virtual int getAbsoluteX() const;
+    virtual int getAbsoluteY() const;
 
     // Absolute bounding box methods
-    virtual int getAbsoluteMinX() const {
-        return getAbsoluteX();
-    }
-    
-    virtual int getAbsoluteMaxX() const {
-        return getAbsoluteX() + width;
-    }
-    
-    virtual int getAbsoluteMinY() const {
-        return getAbsoluteY();
-    }
-    
-    virtual int getAbsoluteMaxY() const {
-        return getAbsoluteY() + height;
-    }
+    virtual int getAbsoluteMinX() const;
+    virtual int getAbsoluteMaxX() const;
+    virtual int getAbsoluteMinY() const;
+    virtual int getAbsoluteMaxY() const;
 
-    virtual SDL_FRect getAbsoluteRect() const {
-        SDL_FRect r;
-        r.x = static_cast<float>(getAbsoluteX());
-        r.y = static_cast<float>(getAbsoluteY());
-        r.w = static_cast<float>(getWidth());
-        r.h = static_cast<float>(getHeight());
-        return r;
-    }
-
+    virtual SDL_FRect getAbsoluteRect() const;
 
     // Core virtual methods
     virtual void render() = 0;
@@ -125,11 +93,7 @@ public:
 
     // Optional virtual methods
     virtual void update(float deltaTime) {} // Default empty implementation
-    virtual bool containsPoint(int pointX, int pointY) const {
-        auto absPos = getAbsolutePosition();
-        return pointX >= absPos.first && pointX <= absPos.first + width &&
-               pointY >= absPos.second && pointY <= absPos.second + height;
-    }
+    virtual bool containsPoint(int pointX, int pointY) const;
 
     // Event callbacks
     std::function<void()> onPress;

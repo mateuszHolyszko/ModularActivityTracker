@@ -38,6 +38,7 @@ void InitMenu::init() {
     const Box& boxSelectUsr = layout.at("SelectUser");
     const Box& boxSelectUsrPrompt = layout.at("SelectUserPrompt");
     const Box& boxEditButton = layout.at("EditButton");
+    const Box& boxScrollPane = layout.at("TestScrollPane");
 
     #pragma region <Element Definitions>
     // Logo Image // =====================================
@@ -131,6 +132,43 @@ void InitMenu::init() {
     editUserButton->setOnPress([this]() { onEditUserButton(); });
     addElement(std::move(editUserButton));
 
+
+    // ScrollPane Test // =================================
+    testScrollPane = addScrollPane(
+        boxScrollPane.x, boxScrollPane.y,      // display position
+        boxScrollPane.width, boxScrollPane.height,  // display size (250x200)
+        boxScrollPane.width, 600.0f            // virtual size (250x600 - larger than display)
+    );
+    if (!testScrollPane) {
+        std::cerr << "Failed to create measurements scroll pane!" << std::endl;
+        return;
+    }
+
+    // Add test labels to scroll pane
+    for (int i = 0; i < 10; ++i) {
+        auto testButton = std::make_unique<Button>(
+            testScrollPane->getRenderContext(),
+            10, 10 + (i * 50), boxScrollPane.width - 20, 40,
+            "Test Label " + std::to_string(i + 1),
+            true,   // Show border
+            20,     // Font size
+            1,      // Layer
+            nullptr, // parent
+            LEFT    // Text alignment
+        );
+        testScrollPane->registerElement(testButton.get()); // Register with scroll pane
+        testButton->setScrollPane(testScrollPane); // Assign to scroll pane
+        testButton->setId("test_button_" + std::to_string(i));
+        testButton->setWrapText(false);
+        
+        // ADD TO MENU so they get rendered and managed
+        addElement(std::move(testButton));
+    }
+    testScrollPane->setScrollOffset(0.0f, 200.0f);
+
+    // Create ScrollBarWidget for the scroll pane
+    scrollBarWidget = std::make_unique<ScrollBarWidget>(testScrollPane, *renderContext);
+
     #pragma endregion <Element Definitions>
 
     // Set focus to the first interactive element (Select User dropdown)
@@ -157,4 +195,19 @@ void InitMenu::update(float deltaTime) {
     // Additional InitMenu-specific updates 
     bool loggedIn = AppGlobals::get<bool>("IsLoggedIn");
     getElement("edit_user_button")->setSelectable(loggedIn);
+
+    //std::cerr << getElement("test_button_9")->getAbsoluteY() << std::endl;
+    for (int i = 0; i < 10; ++i) {
+        auto testButton = dynamic_cast<Button*>(getElement("test_button_" + std::to_string(i)));
+        float offsetX = 0.0f;
+        float offsetY = 0.0f;
+        testScrollPane->getScrollOffset(offsetX, offsetY);
+        testButton->setText("Button" + std::to_string(i)  +" Y: " + std::to_string(  testButton->getAbsoluteY()) + " ScrollY: " + std::to_string(offsetY) + "  RelY: " + std::to_string( testButton->getY()));
+    }
+
+    // Update scrollbar
+    if (scrollBarWidget) {
+        scrollBarWidget->update(deltaTime);
+    }
+    
 }
