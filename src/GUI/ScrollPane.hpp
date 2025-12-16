@@ -31,6 +31,9 @@ public:
     // Update all registered elements' visibility
     void updateElementVisibility();
     
+    // Set the virtual size of the scrollable content
+    void setVirtualSize(float newVirtualWidth, float newVirtualHeight);
+    
     // Render pane content and get its texture
     void update();  // Calls renderer->renderToTexture()
     GLuint getTexture() const;

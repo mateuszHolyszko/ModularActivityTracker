@@ -4,6 +4,7 @@
 #include "../Menu.hpp"
 #include "../menus/StartMenu.hpp"
 #include "../menus/OverviewMenu/OverviewMenu.hpp"
+#include "../menus/ProgramMenu/ProgramMenu.hpp"
 #include "../elements/Label.hpp"
 #include "../elements/Button.hpp"
 #include "../elements/SpriteElement.hpp"

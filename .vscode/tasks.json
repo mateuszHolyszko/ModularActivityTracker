@@ -17,6 +17,7 @@
                 "src/GUI/menus/InitMenu/InitMenu.cpp",
                 "src/GUI/menus/InitMenu/EditUserMenu.cpp",
                 "src/GUI/menus/OverviewMenu/OverviewMenu.cpp",
+                "src/GUI/menus/ProgramMenu/ProgramMenu.cpp",
                 "src/SimpleRenderer.cpp",
                 "src/RenderContext.cpp",
                 "src/QuadRenderer.cpp",

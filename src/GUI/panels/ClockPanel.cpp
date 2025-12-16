@@ -170,7 +170,7 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     auto Menu2Button = std::make_unique<Button>(
         context,  // Use renderContext instead of context
         boxMenu2.x, boxMenu2.y, boxMenu2.width, boxMenu2.height,
-        "Menu 2",
+        "Programs",
         true,  // Show border
         24,    // Medium font
         2,      // Layer
@@ -181,8 +181,22 @@ std::vector<std::unique_ptr<BaseElement>> ClockPanel::create(
     Menu2Button->onUpdate = [menuButtonUpdate, buttonPtr = Menu2Button.get()](float dt) {
         menuButtonUpdate(buttonPtr, dt);
     };
-    // Connect button callback
-    // TO DO: implement callbacks
+    
+    // Set onPress callback - no parameters needed
+    Menu2Button->setOnPress([]() {
+        //std::cout << "Overview button pressed!" << std::endl;
+        RenderContext* context = AppGlobals::get<RenderContext*>("RenderContext");
+        WorkThread* worker = AppGlobals::get<WorkThread*>("WorkerThread");
+        DatabaseManager* dbManager = AppGlobals::get<DatabaseManager*>("DatabaseManager");
+        // Get current user
+        std::string user = AppGlobals::get<std::string>("CurrentUser");
+        // Create the menu dynamically
+        auto programMenu = std::make_unique<ProgramMenu>(context, worker, dbManager,user);
+        programMenu->init(); 
+
+        context->setCurrentMenu(programMenu.release()); // Release ownership to context
+    });
+
     elements.push_back(std::move(Menu2Button));
 
     auto Menu3Button = std::make_unique<Button>(

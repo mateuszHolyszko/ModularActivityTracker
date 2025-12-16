@@ -221,6 +221,160 @@ std::vector<std::string> DatabaseManager::getProgramNamesForUser(int userId) {
     );
 }
 
+bool DatabaseManager::addProgramForUser(int userId, const std::string& programName) {
+    // Validate inputs
+    if (userId <= 0 || programName.empty()) {
+        std::cerr << "Invalid parameters for addProgramForUser: userId=" 
+                  << userId << ", programName='" << programName << "'" << std::endl;
+        return false;
+    }
+    
+    // Prepare SQL statement with parameter binding for security
+    std::string sql = "INSERT INTO program (user_id, name) VALUES (?, ?);";
+    sqlite3_stmt* stmt;
+    
+    int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    // Bind parameters
+    sqlite3_bind_int(stmt, 1, userId);
+    sqlite3_bind_text(stmt, 2, programName.c_str(), -1, SQLITE_STATIC);
+    
+    // Execute statement
+    rc = sqlite3_step(stmt);
+    bool success = (rc == SQLITE_DONE);
+    
+    if (!success) {
+        std::cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << std::endl;
+    }
+    
+    sqlite3_finalize(stmt);
+    return success;
+}
+
+int DatabaseManager::getProgramIdByName(int userId, const std::string& programName) {
+    // Validate inputs
+    if (userId <= 0 || programName.empty()) {
+        std::cerr << "Invalid parameters for getProgramIdByName: userId=" 
+                  << userId << ", programName='" << programName << "'" << std::endl;
+        return -1;
+    }
+    
+    // Prepare SQL statement with parameter binding
+    std::string sql = "SELECT id FROM program WHERE user_id = ? AND name = ?;";
+    sqlite3_stmt* stmt;
+    
+    int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return -1;
+    }
+    
+    // Bind parameters
+    sqlite3_bind_int(stmt, 1, userId);
+    sqlite3_bind_text(stmt, 2, programName.c_str(), -1, SQLITE_STATIC);
+    
+    // Execute query
+    rc = sqlite3_step(stmt);
+    int programId = -1;
+    
+    if (rc == SQLITE_ROW) {
+        programId = sqlite3_column_int(stmt, 0);
+    } else if (rc != SQLITE_DONE) {
+        std::cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
+    }
+    
+    sqlite3_finalize(stmt);
+    return programId;
+}
+
+bool DatabaseManager::removeProgramById(int programId) {
+    // Validate input
+    if (programId <= 0) {
+        std::cerr << "Invalid program ID: " << programId << std::endl;
+        return false;
+    }
+    
+    // Check if program exists
+    std::string checkSql = "SELECT id FROM program WHERE id = ?;";
+    sqlite3_stmt* checkStmt;
+    
+    int rc = sqlite3_prepare_v2(db, checkSql.c_str(), -1, &checkStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    sqlite3_bind_int(checkStmt, 1, programId);
+    rc = sqlite3_step(checkStmt);
+    
+    if (rc != SQLITE_ROW) {
+        std::cerr << "Program with ID " << programId << " does not exist" << std::endl;
+        sqlite3_finalize(checkStmt);
+        return false;
+    }
+    
+    sqlite3_finalize(checkStmt);
+    
+    // Delete program_exercise entries first (due to foreign key constraints)
+    std::string deleteProgramExercisesSql = "DELETE FROM program_exercise WHERE program_id = ?;";
+    sqlite3_stmt* deleteProgramExercisesStmt;
+    
+    rc = sqlite3_prepare_v2(db, deleteProgramExercisesSql.c_str(), -1, &deleteProgramExercisesStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement for deleting program exercises: " 
+                  << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    sqlite3_bind_int(deleteProgramExercisesStmt, 1, programId);
+    rc = sqlite3_step(deleteProgramExercisesStmt);
+    sqlite3_finalize(deleteProgramExercisesStmt);
+    
+    // Delete workouts associated with this program
+    std::string deleteWorkoutsSql = "DELETE FROM workout WHERE program_id = ?;";
+    sqlite3_stmt* deleteWorkoutsStmt;
+    
+    rc = sqlite3_prepare_v2(db, deleteWorkoutsSql.c_str(), -1, &deleteWorkoutsStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement for deleting workouts: " 
+                  << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    sqlite3_bind_int(deleteWorkoutsStmt, 1, programId);
+    rc = sqlite3_step(deleteWorkoutsStmt);
+    sqlite3_finalize(deleteWorkoutsStmt);
+    
+    // Finally delete the program
+    std::string deleteProgramSql = "DELETE FROM program WHERE id = ?;";
+    sqlite3_stmt* deleteProgramStmt;
+    
+    rc = sqlite3_prepare_v2(db, deleteProgramSql.c_str(), -1, &deleteProgramStmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement for deleting program: " 
+                  << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    
+    sqlite3_bind_int(deleteProgramStmt, 1, programId);
+    rc = sqlite3_step(deleteProgramStmt);
+    bool success = (rc == SQLITE_DONE);
+    
+    if (success) {
+        std::cout << "Successfully removed program with ID " << programId << std::endl;
+    } else {
+        std::cerr << "Failed to remove program with ID " << programId 
+                  << ": " << sqlite3_errmsg(db) << std::endl;
+    }
+    
+    sqlite3_finalize(deleteProgramStmt);
+    return success;
+}
+
 std::vector<int> DatabaseManager::getUserIds() {
     return executeQuery<int>(
         "SELECT id FROM user;",

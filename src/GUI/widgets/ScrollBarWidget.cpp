@@ -62,8 +62,8 @@ void ScrollBarWidget::render() {
     bgCmd.y1 = static_cast<float>(y);
     bgCmd.x2 = static_cast<float>(x + width);
     bgCmd.y2 = static_cast<float>(y + height);
-    SDL_Color trackColor = style.getLgBgColor();
-    bgCmd.color = glm::vec4(trackColor.r, trackColor.g, trackColor.b, 0.6f); // Darker gray for background/track
+    SDL_Color trackColor = style.getTextColor();
+    bgCmd.color = glm::vec4(trackColor.r, trackColor.g, trackColor.b, 1.0f); // Darker gray for background/track
     bgCmd.filled = true;
     bgCmd.layer = 3; // UI layer
     renderContext->graphicQueue.push_back(bgCmd);
@@ -76,8 +76,8 @@ void ScrollBarWidget::render() {
     thumbCmd.x2 = static_cast<float>(x + width);
     thumbCmd.y2 = static_cast<float>(y + thumbPosition + thumbHeight);
     
-    SDL_Color thumbColor = style.getTextColor();
-    thumbCmd.color = glm::vec4(thumbColor.r, thumbColor.g, thumbColor.b, 0.6f); // Lighter gray for thumb
+    SDL_Color thumbColor = style.getLgBgColor();
+    thumbCmd.color = glm::vec4(thumbColor.r, thumbColor.g, thumbColor.b, 1.0f); // Lighter gray for thumb
     thumbCmd.filled = true;
     thumbCmd.layer = 4; // Above background
     renderContext->graphicQueue.push_back(thumbCmd);

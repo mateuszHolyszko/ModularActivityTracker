@@ -17,6 +17,32 @@ bool ScrollPane::init() {
     return true;
 }
 
+void ScrollPane::setVirtualSize(float newVirtualWidth, float newVirtualHeight) {
+    // Store old values for comparison
+    float oldVirtualWidth = virtualWidth;
+    float oldVirtualHeight = virtualHeight;
+    
+    // Update virtual size
+    virtualWidth = newVirtualWidth;
+    virtualHeight = newVirtualHeight;
+    
+    // Reinitialize the renderer with new dimensions if needed
+    if (paneRenderer) {
+        // Only reinitialize if dimensions actually changed
+        if ((int)oldVirtualWidth != (int)newVirtualWidth || 
+            (int)oldVirtualHeight != (int)newVirtualHeight) {
+            paneRenderer->shutdown();
+            paneRenderer->init(&paneContext, (int)virtualWidth, (int)virtualHeight);
+        }
+    }
+    
+    // Adjust scroll offset to stay within new bounds
+    setScrollOffset(scrollX, scrollY);
+    
+    // Update element visibility since viewport bounds may have changed
+    updateElementVisibility();
+}
+
 void ScrollPane::setScrollOffset(float offsetX, float offsetY) {
     // Clamp to valid range
     scrollX = std::max(0.0f, std::min(offsetX, virtualWidth - displayWidth));

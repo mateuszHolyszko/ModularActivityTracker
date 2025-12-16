@@ -5,11 +5,12 @@
 InputKeyboardMenu::InputKeyboardMenu(RenderContext* context, WorkThread* workThread, DatabaseManager* dbMgr,
                                    Menu* returnMenu, BaseElement* returnFocus,
                                    std::string* outputString)
-    : Menu(context, workThread, dbMgr, "InputKeyboardMenu")  
+    : Menu(context, workThread, dbMgr, "InputKeyboardMenu")
     , returnMenu(returnMenu)
-    , returnFocus(returnFocus)
+    , returnFocusId(returnFocus ? returnFocus->getId() : "")
     , outputString(outputString)  // Store the pointer (don't modify until Enter)
     , internalString(outputString ? *outputString : "")  // Initialize with current value
+    , onEnterCallback(nullptr)  // Initialize callback to nullptr
 {
 }
 
@@ -189,12 +190,16 @@ void InputKeyboardMenu::init() {
     );
     enterButton->setId("enter_button");
     enterButton->setOnPress([this]() {
-        //std::cout << "DEBUG: HERE" << std::endl;
         // Write internal string to output pointer only when Enter is pressed
         if (outputString) {
             *outputString = internalString;
         }
-        //std::cout << "DEBUG: HERE after Write" << std::endl;
+        
+        // Call the callback if it's set
+        if (onEnterCallback) {
+            onEnterCallback(internalString);
+        }
+        
         closeMenu();
     });
     addElement(std::move(enterButton));
@@ -212,9 +217,15 @@ void InputKeyboardMenu::closeMenu() {
     if (renderContext && returnMenu) {
         renderContext->setCurrentMenu(returnMenu);
         
-        // Restore focus if provided
-        if (returnFocus && returnMenu) {
-            returnMenu->setFocus(returnFocus);
+        // Restore focus by resolving stored ID (avoid dereferencing a dangling pointer)
+        if (!returnFocusId.empty()) {
+            BaseElement* el = returnMenu->getElement(returnFocusId);
+            if (el) {
+                returnMenu->setFocus(el);
+                return;
+            }
         }
+        // If exact previous element no longer exists, do nothing and let the return menu
+        // manage its own focus (it typically sets focus when rebuilding).
     }
 }

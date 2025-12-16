@@ -60,7 +60,6 @@ private:
     // Arrow navigation helper method
     void navigate_arrows(int dirX, int dirY);
     // Helper to check if element is mostly clipped by scroll pane
-    bool isElementMostlyClipped(BaseElement* element) const;
     double navigationConeAngleDegrees = 60.0;
 };
 

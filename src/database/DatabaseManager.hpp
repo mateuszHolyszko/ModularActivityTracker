@@ -50,6 +50,11 @@ public:
     UserMeasurements getLatestUserMeasurements(int userId);
     bool insertUserMeasurements(const std::string& userName, const UserMeasurements& measurements);
     int getUserIdByName(const std::string& userName);
+
+    // Programs
+    bool addProgramForUser(int userId, const std::string& programName);
+    int getProgramIdByName(int userId, const std::string& programName);
+    bool removeProgramById(int programId);
     
     // History query method
     bool getUserHistory(int userId, const std::string& measurement, int weeksToQuery, 
